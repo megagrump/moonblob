@@ -55,7 +55,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 ## Documentation
 
-[API documentation](https://megagrump.github.io/moonblob/doc)
+[API documentation](https://megagrump.github.io/moonblob/doc/)
 
 ## Functions
 
