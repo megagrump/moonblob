@@ -1,0 +1,957 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>moonblob</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><a href="../classes/BlobReader.html">BlobReader</a></li>
+  <li><strong>BlobWriter</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>BlobWriter</code></h1>
+<p>Writes binary data to memory.</p>
+<p>
+
+</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new">new ([byteOrder[, size]])</a></td>
+	<td class="summary">Creates a new BlobWriter instance.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setByteOrder">setByteOrder (byteOrder)</a></td>
+	<td class="summary">Sets the order in which multi-byte values will be written.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write">write (value)</a></td>
+	<td class="summary">Writes a value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#number">number (number)</a></td>
+	<td class="summary">Writes a Lua number to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#bool">bool (bool)</a></td>
+	<td class="summary">Writes a boolean value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#string">string (str)</a></td>
+	<td class="summary">Writes a string to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u8">u8 (u8)</a></td>
+	<td class="summary">Writes an unsigned 8 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s8">s8 (s8)</a></td>
+	<td class="summary">Writes a signed 8 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u16">u16 (u16)</a></td>
+	<td class="summary">Writes an unsigned 16 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s16">s16 (s16)</a></td>
+	<td class="summary">Writes a signed 16 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u32">u32 (u32)</a></td>
+	<td class="summary">Writes an unsigned 32 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s32">s32 (s32)</a></td>
+	<td class="summary">Writes a signed 32 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u64">u64 (u64)</a></td>
+	<td class="summary">Writes an unsigned 64 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s64">s64 (s64)</a></td>
+	<td class="summary">Writes a signed 64 bit value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#f32">f32 (f32)</a></td>
+	<td class="summary">Writes a 32 bit floating point value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#f64">f64 (f64)</a></td>
+	<td class="summary">Writes a 64 bit floating point value to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#raw">raw (raw[, length])</a></td>
+	<td class="summary">Writes raw binary data to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cstring">cstring (str)</a></td>
+	<td class="summary">Writes a string to the output buffer, followed by a null byte.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#table">table (t)</a></td>
+	<td class="summary">Writes a table to the output buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vu32">vu32 (value)</a></td>
+	<td class="summary">Writes an unsigned 32 bit integer value with varying length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vs32">vs32 (value)</a></td>
+	<td class="summary">Writes a signed 32 bit integer value with varying length.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#pack">pack (format, ...)</a></td>
+	<td class="summary">Writes data to the output buffer according to a format string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#tostring">tostring ()</a></td>
+	<td class="summary">Returns the current buffer contents as a string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#length">length ()</a></td>
+	<td class="summary">Returns the number of bytes stored in the blob.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#size">size ()</a></td>
+	<td class="summary">Returns the size of the write buffer in bytes</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vu32size">vu32size (value)</a></td>
+	<td class="summary">Returns the number of bytes required to store an unsigned 32 bit value when written by <code>BlobWriter\vu32</code>.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vs32size">vs32size (value)</a></td>
+	<td class="summary">Returns the number of bytes required to store a signed 32 bit value when written by <code>BlobWriter\vs32</code>.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "new"></a>
+    <strong>new ([byteOrder[, size]])</strong>
+    </dt>
+    <dd>
+    Creates a new BlobWriter instance.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">byteOrder</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+         Byte order</p>
+
+<p> Use <code>le</code> or <code>&lt;</code> for little endian; <code>be</code> or <code>&gt;</code> for big endian; <code>host</code>, <code>=</code> or <code>nil</code> to use the
+ host's native byteOrder (default)
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">size</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The initial size of the blob. Default size is 1024. Will grow automatically when needed.
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        A new BlobWriter instance.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <li><pre class="example">writer = BlobWriter!</pre></li>
+        <li><pre class="example">writer = BlobWriter(<span class="string">'&lt;'</span>, <span class="number">1000</span>)</pre></li>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "setByteOrder"></a>
+    <strong>setByteOrder (byteOrder)</strong>
+    </dt>
+    <dd>
+    Sets the order in which multi-byte values will be written.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">byteOrder</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+         Byte order</p>
+
+<p> Can be either <code>le</code> or <code>&lt;</code> for little endian, <code>be</code> or <code>&gt;</code> for big endian, or <code>host</code> or <code>nil</code> for native host byte
+ order.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write"></a>
+    <strong>write (value)</strong>
+    </dt>
+    <dd>
+    Writes a value to the output buffer.  Determines the type of the value automatically.</p>
+
+<p> Supported value types are <a href="../classes/BlobWriter.html#number">number</a>, <a href="../classes/BlobWriter.html#string">string</a>, <code>boolean</code> and <a href="../classes/BlobWriter.html#table">table</a>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+         the value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "number"></a>
+    <strong>number (number)</strong>
+    </dt>
+    <dd>
+    Writes a Lua number to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">number</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The number to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "bool"></a>
+    <strong>bool (bool)</strong>
+    </dt>
+    <dd>
+    Writes a boolean value to the output buffer. </p>
+
+<p> The value is written as an unsigned 8 bit value (<code>true = 1</code>, <code>false = 0</code>)
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bool</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#bool">bool</a></span>
+         The boolean value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "string"></a>
+    <strong>string (str)</strong>
+    </dt>
+    <dd>
+    Writes a string to the output buffer. </p>
+
+<p> Stores the length of the string as a <a href="../classes/BlobWriter.html#vu32">vu32</a> field before the actual string data.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">str</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+         The string to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u8"></a>
+    <strong>u8 (u8)</strong>
+    </dt>
+    <dd>
+    Writes an unsigned 8 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">u8</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s8"></a>
+    <strong>s8 (s8)</strong>
+    </dt>
+    <dd>
+    Writes a signed 8 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">s8</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u16"></a>
+    <strong>u16 (u16)</strong>
+    </dt>
+    <dd>
+    Writes an unsigned 16 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">u16</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s16"></a>
+    <strong>s16 (s16)</strong>
+    </dt>
+    <dd>
+    Writes a signed 16 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">s16</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u32"></a>
+    <strong>u32 (u32)</strong>
+    </dt>
+    <dd>
+    Writes an unsigned 32 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">u32</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s32"></a>
+    <strong>s32 (s32)</strong>
+    </dt>
+    <dd>
+    Writes a signed 32 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">s32</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u64"></a>
+    <strong>u64 (u64)</strong>
+    </dt>
+    <dd>
+    Writes an unsigned 64 bit value to the output buffer. </p>
+
+<p> Lua numbers are only accurate up to 2 ^ 53. Use the LuaJIT <code>ULL</code> suffix to write large numbers.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">u64</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">writer\u64(<span class="number">72057594037927936</span>ULL)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "s64"></a>
+    <strong>s64 (s64)</strong>
+    </dt>
+    <dd>
+    Writes a signed 64 bit value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">s64</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#u64">BlobWriter:u64</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "f32"></a>
+    <strong>f32 (f32)</strong>
+    </dt>
+    <dd>
+    Writes a 32 bit floating point value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">f32</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "f64"></a>
+    <strong>f64 (f64)</strong>
+    </dt>
+    <dd>
+    Writes a 64 bit floating point value to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">f64</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "raw"></a>
+    <strong>raw (raw[, length])</strong>
+    </dt>
+    <dd>
+    Writes raw binary data to the output buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">raw</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a> or <span class="type">cdata</span></span>
+         A <a href="../classes/BlobWriter.html#string">string</a> or <code>cdata</code> with the data to write to the output buffer
+        </li>
+        <li><span class="parameter">length</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         Length of data (not required when data is a string)
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cstring"></a>
+    <strong>cstring (str)</strong>
+    </dt>
+    <dd>
+    Writes a string to the output buffer, followed by a null byte.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">str</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+         The string to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "table"></a>
+    <strong>table (t)</strong>
+    </dt>
+    <dd>
+    Writes a table to the output buffer. </p>
+
+<p> Supported field types are number, string, bool and table. Cyclic references throw an error.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">t</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#table">table</a></span>
+         The table to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "vu32"></a>
+    <strong>vu32 (value)</strong>
+    </dt>
+    <dd>
+    Writes an unsigned 32 bit integer value with varying length. </p>
+
+<p> The value is written in an encoded format where the length depends on the value: larger values need more space.
+ The minimum length is 1 byte for values &lt; 2^7, maximum length is 5 bytes for values >= 2^28.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The unsigned integer value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#vu32size">BlobWriter:vu32size</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "vs32"></a>
+    <strong>vs32 (value)</strong>
+    </dt>
+    <dd>
+    Writes a signed 32 bit integer value with varying length.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The signed integer value to write to the output buffer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "pack"></a>
+    <strong>pack (format, ...)</strong>
+    </dt>
+    <dd>
+    Writes data to the output buffer according to a format string. </p>
+
+<p> See <code>BlobReader\unpack</code> for a list of supported format specifiers.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">format</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+         data format descriptor string
+        </li>
+        <li><span class="parameter">...</span>
+         values to write
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobWriter</span></span>
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobReader.html#unpack">BlobReader:unpack</a>
+    </ul>
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">writer\pack(<span class="string">'Bfy'</span>, <span class="number">255</span>, <span class="number">23.0</span>, <span class="keyword">true</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "tostring"></a>
+    <strong>tostring ()</strong>
+    </dt>
+    <dd>
+    Returns the current buffer contents as a string.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
+        A string with the current buffer contents
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "length"></a>
+    <strong>length ()</strong>
+    </dt>
+    <dd>
+    Returns the number of bytes stored in the blob.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+        The number of bytes stored in the blob
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "size"></a>
+    <strong>size ()</strong>
+    </dt>
+    <dd>
+    Returns the size of the write buffer in bytes
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+        Write buffer size in bytes
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "vu32size"></a>
+    <strong>vu32size (value)</strong>
+    </dt>
+    <dd>
+    Returns the number of bytes required to store an unsigned 32 bit value when written by <code>BlobWriter\vu32</code>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The unsigned 32 bit value to write
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+        The number of bytes required by <code>BlobWriter\vu32</code> to store <code>value</code>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "vs32size"></a>
+    <strong>vs32size (value)</strong>
+    </dt>
+    <dd>
+    Returns the number of bytes required to store a signed 32 bit value when written by <code>BlobWriter\vs32</code>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+         The signed 32 bit value to write
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
+        The number of bytes required by <code>BlobWriter\vs32</code> to store <code>value</code>
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2018-10-29 15:09:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

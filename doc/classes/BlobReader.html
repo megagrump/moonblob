@@ -1,0 +1,849 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>moonblob</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><strong>BlobReader</strong></li>
+  <li><a href="../classes/BlobWriter.html">BlobWriter</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>BlobReader</code></h1>
+<p>Parses binary data from memory.</p>
+<p>
+
+</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new">new (data[, byteOrder[, size]])</a></td>
+	<td class="summary">Creates a new BlobReader instance.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setByteOrder">setByteOrder (byteOrder)</a></td>
+	<td class="summary">Set source data byte order.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#read">read ()</a></td>
+	<td class="summary">Reads a <a href="../classes/BlobReader.html#string">string</a>, a <a href="../classes/BlobReader.html#number">number</a>, a <code>boolean</code> or a <a href="../classes/BlobReader.html#table">table</a> from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#number">number ()</a></td>
+	<td class="summary">Reads a Lua number from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#string">string ()</a></td>
+	<td class="summary">Reads a string from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#bool">bool ()</a></td>
+	<td class="summary">Reads a boolean value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#table">table ()</a></td>
+	<td class="summary">Reads a Lua table from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u8">u8 ()</a></td>
+	<td class="summary">Reads one unsigned 8-bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s8">s8 ()</a></td>
+	<td class="summary">Reads one signed 8-bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u16">u16 ()</a></td>
+	<td class="summary">Reads one unsigned 16-bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s16">s16 ()</a></td>
+	<td class="summary">Reads one signed 16 bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u32">u32 ()</a></td>
+	<td class="summary">Reads one unsigned 32 bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s32">s32 ()</a></td>
+	<td class="summary">Reads one signed 32 bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#u64">u64 ()</a></td>
+	<td class="summary">Reads one unsigned 64 bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#s64">s64 ()</a></td>
+	<td class="summary">Reads one signed 64 bit value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#f32">f32 ()</a></td>
+	<td class="summary">Reads one 32 bit floating point value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#f64">f64 ()</a></td>
+	<td class="summary">Reads one 64 bit floating point value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vu32">vu32 ()</a></td>
+	<td class="summary">Reads a variable length unsigned 32 bit integer value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#vs32">vs32 ()</a></td>
+	<td class="summary">Reads a variable length signed 32 bit integer value from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#raw">raw (len)</a></td>
+	<td class="summary">Reads raw binary data from the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#skip">skip (len)</a></td>
+	<td class="summary">Skips a number of bytes in the input data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cstring">cstring ()</a></td>
+	<td class="summary">Reads a zero-terminated string from the input data (up to 2 ^ 32 - 1 bytes).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#unpack">unpack (format)</a></td>
+	<td class="summary">Parses data into separate values according to a format string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#size">size ()</a></td>
+	<td class="summary">Returns the size of the input data in bytes.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rewind">rewind ()</a></td>
+	<td class="summary">Resets the read position to the beginning of the data.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#position">position ()</a></td>
+	<td class="summary">Returns the current read position as an offset from the start of the input data in bytes.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "new"></a>
+    <strong>new (data[, byteOrder[, size]])</strong>
+    </dt>
+    <dd>
+    Creates a new BlobReader instance.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">data</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a> or <span class="type">cdata</span></span>
+         Data with which to populate the blob
+        </li>
+        <li><span class="parameter">byteOrder</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+         The byte order of the data</p>
+
+<p> Use <code>le</code> or <code>&lt;</code> for little endian; <code>be</code> or <code>&gt;</code> for big endian; <code>host</code>, <code>=</code> or <code>nil</code> to use the
+ host's native byte order (default)
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">size</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+         When data is of type <code>cdata</code>, you need to pass the size manually
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobReader</span></span>
+        A new BlobReader instance.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <li><pre class="example"><span class="keyword">local</span> reader = BlobReader(data)</pre></li>
+        <li><pre class="example"><span class="keyword">local</span> reader = BlobReader(data, <span class="string">'&gt;'</span>)</pre></li>
+        <li><pre class="example"><span class="keyword">local</span> reader = BlobReader(cdata, <span class="keyword">nil</span>, <span class="number">1000</span>)</pre></li>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "setByteOrder"></a>
+    <strong>setByteOrder (byteOrder)</strong>
+    </dt>
+    <dd>
+    Set source data byte order.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">byteOrder</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+         Byte order.</p>
+
+<p> Can be either <code>le</code> or <code>&lt;</code> for little endian, <code>be</code> or <code>&gt;</code> for big endian, or <code>host</code> or <code>nil</code> for native host byte
+ order.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobReader</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "read"></a>
+    <strong>read ()</strong>
+    </dt>
+    <dd>
+    Reads a <a href="../classes/BlobReader.html#string">string</a>, a <a href="../classes/BlobReader.html#number">number</a>, a <code>boolean</code> or a <a href="../classes/BlobReader.html#table">table</a> from the input data. </p>
+
+<p> The data must have been written by <code>BlobWriter\write</code>.
+ The type of the value is automatically detected from the input metadata.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a>, <a class="type" href="../classes/BlobReader.html#number">number</a>, <a class="type" href="../classes/BlobReader.html#bool">bool</a> or <a class="type" href="../classes/BlobReader.html#table">table</a></span>
+        The value read from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#write">BlobWriter:write</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "number"></a>
+    <strong>number ()</strong>
+    </dt>
+    <dd>
+    Reads a Lua number from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The number read read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "string"></a>
+    <strong>string ()</strong>
+    </dt>
+    <dd>
+    Reads a string from the input data. </p>
+
+<p> The string must have been written by <code>BlobWriter\write</code> or <code>BlobWriter\string</code>
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+        The string read from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../classes/BlobWriter.html#write">BlobWriter:write</a></li>
+         <li><a href="../classes/BlobWriter.html#string">BlobWriter:string</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "bool"></a>
+    <strong>bool ()</strong>
+    </dt>
+    <dd>
+    Reads a boolean value from the input data. </p>
+
+<p> The data is expected to be 8 bits long, <code>0 == false</code>, any other value == <code>true</code>
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#bool">bool</a></span>
+        The boolean value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "table"></a>
+    <strong>table ()</strong>
+    </dt>
+    <dd>
+    Reads a Lua table from the input data. </p>
+
+<p> The table must have been written by BlobWriter.write or BlobWriter.table.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#table">table</a></span>
+        The table read from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../classes/BlobWriter.html#table">BlobWriter:table</a></li>
+         <li><a href="../classes/BlobWriter.html#write">BlobWriter:write</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "u8"></a>
+    <strong>u8 ()</strong>
+    </dt>
+    <dd>
+    Reads one unsigned 8-bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The unsigned 8-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s8"></a>
+    <strong>s8 ()</strong>
+    </dt>
+    <dd>
+    Reads one signed 8-bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The signed 8-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u16"></a>
+    <strong>u16 ()</strong>
+    </dt>
+    <dd>
+    Reads one unsigned 16-bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The unsigned 16-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s16"></a>
+    <strong>s16 ()</strong>
+    </dt>
+    <dd>
+    Reads one signed 16 bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The signed 16-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u32"></a>
+    <strong>u32 ()</strong>
+    </dt>
+    <dd>
+    Reads one unsigned 32 bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The unsigned 32-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s32"></a>
+    <strong>s32 ()</strong>
+    </dt>
+    <dd>
+    Reads one signed 32 bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The signed 32-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "u64"></a>
+    <strong>u64 ()</strong>
+    </dt>
+    <dd>
+    Reads one unsigned 64 bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The unsigned 64-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "s64"></a>
+    <strong>s64 ()</strong>
+    </dt>
+    <dd>
+    Reads one signed 64 bit value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The signed 64-bit value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "f32"></a>
+    <strong>f32 ()</strong>
+    </dt>
+    <dd>
+    Reads one 32 bit floating point value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The 32-bit floating point value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "f64"></a>
+    <strong>f64 ()</strong>
+    </dt>
+    <dd>
+    Reads one 64 bit floating point value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The 64-bit floating point value read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "vu32"></a>
+    <strong>vu32 ()</strong>
+    </dt>
+    <dd>
+    Reads a variable length unsigned 32 bit integer value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The unsigned 32-bit integer value read from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "vs32"></a>
+    <strong>vs32 ()</strong>
+    </dt>
+    <dd>
+    Reads a variable length signed 32 bit integer value from the input data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        The signed 32-bit integer value read from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#vs32">BlobWriter:vs32</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "raw"></a>
+    <strong>raw (len)</strong>
+    </dt>
+    <dd>
+    Reads raw binary data from the input data.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">len</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+         The length of the data (in bytes) to read
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+        A string with raw data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "skip"></a>
+    <strong>skip (len)</strong>
+    </dt>
+    <dd>
+    Skips a number of bytes in the input data.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">len</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+         The number of bytes to skip
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobReader</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cstring"></a>
+    <strong>cstring ()</strong>
+    </dt>
+    <dd>
+    Reads a zero-terminated string from the input data (up to 2 ^ 32 - 1 bytes). </p>
+
+<p> Keeps reading bytes until a null byte is encountered.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+        The string read from the input data
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "unpack"></a>
+    <strong>unpack (format)</strong>
+    </dt>
+    <dd>
+    Parses data into separate values according to a format string. </p>
+
+<p> The format string syntax is based on the format that Lua 5.3's string.unpack accepts, but does not implement all
+ features and uses fixed instead of native data sizes.
+ See <a href='http://www.lua.org/manual/5.3/manual.html#6.4.2'>the Lua manual</a> for details.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">format</span>
+            <span class="types"><a class="type" href="../classes/BlobReader.html#string">string</a></span>
+
+<p> Data format descriptor string.</p>
+
+<p> Supported format specifiers:</p>
+
+<ul>
+    <li><p>Byte order:</p>
+    <ul>
+        <li><code>&lt;</code> (little endian)</li>
+        <li><code>&gt;</code> (big endian)</li>
+        <li><code>=</code> (host endian, default)</li>
+    </ul>
+
+    <p> Byte order can be switched any number of times in a format string.</p></li>
+    <li><p>Integer types:</p>
+    <ul>
+        <li><code>b</code> / <code>B</code> (signed/unsigned 8 bits)</li>
+        <li><code>h</code> / <code>H</code> (signed/unsigned 16 bits)</li>
+        <li><code>l</code> / <code>L</code> (signed/unsigned 32 bits)</li>
+        <li><code>v</code> / <code>V</code> (signed/unsigned variable length 32 bits) - see <code>BlobReader\vs32</code> / <code>BlobReader\vu32</code></li>
+        <li><code>q</code> / <code>Q</code> (signed/unsigned 64 bits)</li>
+    </ul></li>
+    <li><p>Floating point types:</p>
+    <ul>
+        <li><code>f</code> (32 bits)</li>
+        <li><code>d</code>, <code>n</code> (64 bits)</li>
+    </ul></li>
+    <li><p>String types:</p>
+    <ul>
+        <li><code>z</code> (zero terminated string)</li>
+        <li><code>s</code> (string with preceding length information)</li>
+    </ul></li>
+    <li><p>Raw data:</p>
+    <ul>
+        <li><code>c[length]</code> (up to 2 ^ 32 - 1 bytes)</li>
+    </ul></li>
+    <li><p>Boolean:</p>
+    <ul>
+        <li><code>y</code> (8 bits boolean value)</li>
+    </ul></li>
+    <li><p>Table:</p>
+    <ul>
+        <li><code>t</code> (table written with <a href="../classes/BlobWriter.html#table">BlobWriter.table</a></li>
+    </ul></li>
+    <li><p>"<code> </code>" (a single space character): skip one byte</p></li>
+</ul>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        All values parsed from the input data
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/BlobWriter.html#pack">BlobWriter:pack</a>
+    </ul>
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="keyword">local</span> byte, float, bool = reader\<span class="global">unpack</span>(<span class="string">'Bfy'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "size"></a>
+    <strong>size ()</strong>
+    </dt>
+    <dd>
+    Returns the size of the input data in bytes.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        Data size in bytes
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rewind"></a>
+    <strong>rewind ()</strong>
+    </dt>
+    <dd>
+    Resets the read position to the beginning of the data.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">BlobReader</span></span>
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "position"></a>
+    <strong>position ()</strong>
+    </dt>
+    <dd>
+    Returns the current read position as an offset from the start of the input data in bytes.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/BlobReader.html#number">number</a></span>
+        Current read position in bytes
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2018-10-29 15:09:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
