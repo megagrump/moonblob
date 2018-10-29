@@ -16,9 +16,9 @@ class BlobReader
 	-- host's native byte order (default)
 	-- @tparam[opt] number size When data is of type `cdata`, you need to pass the size manually
 	-- @treturn BlobReader A new BlobReader instance.
-	-- @usage local reader = BlobReader(data)
-	-- @usage local reader = BlobReader(data, '>')
-	-- @usage local reader = BlobReader(cdata, nil, 1000)
+	-- @usage reader = BlobReader(data)
+	-- @usage reader = BlobReader(data, '>')
+	-- @usage reader = BlobReader(cdata, nil, 1000)
 	new: (data, byteOrder, size) =>
 		dtype = type(data)
 		if dtype == 'string'
@@ -259,7 +259,7 @@ class BlobReader
 	--     * `t` (table written with `BlobWriter.table`
 	-- * "` `" (a single space character): skip one byte
 	-- @return All values parsed from the input data
-	-- @usage local byte, float, bool = reader\unpack('Bfy')
+	-- @usage byte, float, bool = reader\unpack('Bfy')
 	-- @see BlobWriter:pack
 	unpack: (format) =>
 		assert(type(format) == 'string', "Invalid format specifier")
