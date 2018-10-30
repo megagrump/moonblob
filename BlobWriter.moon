@@ -65,13 +65,7 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	string: (str) =>
 		length = #str
-		makeRoom = (@_size - @_length) - (length + @vu32size(length))
-		@_grow(math.abs(makeRoom)) if makeRoom < 0
-
-		@vu32(length)
-		ffi.copy(ffi.cast('char*', @_data + @_length), str, length)
-		@_length += length
-		@
+		@vu32(length)\raw(str, length)
 
 	--- Writes an unsigned 8 bit value to the output buffer.
 	--
@@ -177,7 +171,6 @@ class BlobWriter
 		length = length or #raw
 		makeRoom = (@_size - @_length) - length
 		@_grow(math.abs(makeRoom)) if makeRoom < 0
-
 		ffi.copy(ffi.cast('char*', @_data + @_length), raw, length)
 		@_length += length
 		@
