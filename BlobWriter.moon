@@ -135,7 +135,7 @@ class BlobWriter
 
 	--- Writes an unsigned 64 bit value to the output buffer.
 	--
-	-- Lua numbers are only accurate up to 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
+	-- Lua numbers are only accurate for values < 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
 	-- @usage writer\u64(72057594037927936ULL)
 	-- @tparam number u64 The value to write to the output buffer
 	-- @treturn BlobWriter self
@@ -177,6 +177,7 @@ class BlobWriter
 		length = length or #raw
 		makeRoom = (@_size - @_length) - length
 		@_grow(math.abs(makeRoom)) if makeRoom < 0
+
 		ffi.copy(ffi.cast('char*', @_data + @_length), raw, length)
 		@_length += length
 		@
@@ -196,7 +197,7 @@ class BlobWriter
 
 	--- Writes an unsigned 32 bit integer value with varying length.
 	--
-	-- The value is written in an encoded format where the length depends on the value: larger values need more space.
+	-- The value is written in an encoded format. The length depends on the value; larger values need more space.
 	-- The minimum length is 1 byte for values < 2^7, maximum length is 5 bytes for values >= 2^28.
 	-- @tparam number value The unsigned integer value to write to the output buffer
 	-- @see BlobWriter:vu32size
@@ -222,7 +223,7 @@ class BlobWriter
 
 	--- Writes data to the output buffer according to a format string.
 	--
-	-- See `BlobReader\unpack` for a list of supported format specifiers.
+	-- See `BlobReader:unpack` for a list of supported format specifiers.
 	-- @tparam string format data format descriptor string
 	-- @param ... values to write
 	-- @treturn BlobWriter self
@@ -278,10 +279,10 @@ class BlobWriter
 	-- @treturn number Write buffer size in bytes
 	size: => @_size
 
-	--- Returns the number of bytes required to store an unsigned 32 bit value when written by `BlobWriter\vu32`.
+	--- Returns the number of bytes required to store an unsigned 32 bit value when written by `BlobWriter:vu32`.
 	--
 	-- @tparam number value The unsigned 32 bit value to write
-	-- @treturn number The number of bytes required by `BlobWriter\vu32` to store `value`
+	-- @treturn number The number of bytes required by `BlobWriter:vu32` to store `value`
 	vu32size: (value) =>
 		return 1 if value < 2 ^ 7
 		return 2 if value < 2 ^ 14
@@ -289,10 +290,10 @@ class BlobWriter
 		return 4 if value < 2 ^ 28
 		5
 
-	--- Returns the number of bytes required to store a signed 32 bit value when written by `BlobWriter\vs32`.
+	--- Returns the number of bytes required to store a signed 32 bit value when written by `BlobWriter:vs32`.
 	--
 	-- @tparam number value The signed 32 bit value to write
-	-- @treturn number The number of bytes required by `BlobWriter\vs32` to store `value`
+	-- @treturn number The number of bytes required by `BlobWriter:vs32` to store `value`
 	vs32size: (value) =>
 		_native.s32[0] = value
 		@vu32size(_native.u32[0])

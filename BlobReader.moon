@@ -46,7 +46,7 @@ class BlobReader
 
 	--- Reads a `string`, a `number`, a `boolean` or a `table` from the input data.
 	--
-	-- The data must have been written by `BlobWriter\write`.
+	-- The data must have been written by `BlobWriter:write`.
 	-- The type of the value is automatically detected from the input metadata.
 	-- @treturn string|number|bool|table The value read from the input data
 	-- @see BlobWriter:write
@@ -63,7 +63,7 @@ class BlobReader
 
 	--- Reads a string from the input data.
 	--
-	-- The string must have been written by `BlobWriter\write` or `BlobWriter\string`
+	-- The string must have been written by `BlobWriter:write` or `BlobWriter:string`
 	-- @treturn string The string read from the input data
 	-- @see BlobWriter:write
 	-- @see BlobWriter:string
@@ -172,6 +172,7 @@ class BlobReader
 
 	--- Reads a variable length unsigned 32 bit integer value from the input data.
 	--
+	-- See `BlobWriter:vu32` for more details about this data type.
 	-- @treturn number The unsigned 32-bit integer value read from the input data
 	-- @see BlobWriter:vu32
 	vu32: =>
@@ -187,6 +188,7 @@ class BlobReader
 
 	--- Reads a variable length signed 32 bit integer value from the input data.
 	--
+	-- See `BlobWriter:vu32` for more details about this data type.
 	-- @treturn number The signed 32-bit integer value read from the input data
 	-- @see BlobWriter:vs32
 	vs32: =>
@@ -243,7 +245,7 @@ class BlobReader
 	--     * `b` / `B` (signed/unsigned 8 bits)
 	--     * `h` / `H` (signed/unsigned 16 bits)
 	--     * `l` / `L` (signed/unsigned 32 bits)
-	--     * `v` / `V` (signed/unsigned variable length 32 bits) - see `BlobReader\vs32` / `BlobReader\vu32`
+	--     * `v` / `V` (signed/unsigned variable length 32 bits) - see `BlobReader:vs32` / `BlobReader:vu32`
 	--     * `q` / `Q` (signed/unsigned 64 bits)
 	-- * Floating point types:
 	--     * `f` (32 bits)
@@ -256,7 +258,7 @@ class BlobReader
 	-- * Boolean:
 	--     * `y` (8 bits boolean value)
 	-- * Table:
-	--     * `t` (table written with `BlobWriter.table`
+	--     * `t` (table written with `BlobWriter:table`
 	-- * "` `" (a single space character): skip one byte
 	-- @return All values parsed from the input data
 	-- @usage byte, float, bool = reader\unpack('Bfy')
