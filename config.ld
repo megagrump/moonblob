@@ -8,3 +8,4 @@ format = 'markdown'
 project = 'moonblob'
 kind_names = { module = 'Classes' }
 not_luadoc = true
+style = true

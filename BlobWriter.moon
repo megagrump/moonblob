@@ -216,8 +216,39 @@ class BlobWriter
 
 	--- Writes data to the output buffer according to a format string.
 	--
-	-- See `BlobReader:unpack` for a list of supported format specifiers.
-	-- @tparam string format data format descriptor string
+	-- @tparam string format Data format descriptor string.
+	-- The format string syntax is based on the format that Lua 5.3's string.unpack accepts, but does not implement all
+	-- features and uses fixed instead of native data sizes.
+	-- See <a href='http://www.lua.org/manual/5.3/manual.html#6.4.2'>the Lua manual</a> for details.
+	--
+	-- Supported format specifiers:
+	--
+	-- * Byte order:
+	--     * `<` (little endian)
+	--     * `>` (big endian)
+	--     * `=` (host endian, default)
+	--
+	--     Byte order can be switched any number of times in a format string.
+	-- * Integer types:
+	--     * `b` / `B` (signed/unsigned 8 bits)
+	--     * `h` / `H` (signed/unsigned 16 bits)
+	--     * `l` / `L` (signed/unsigned 32 bits)
+	--     * `v` / `V` (signed/unsigned variable length 32 bits) - see `BlobReader:vs32` / `BlobReader:vu32`
+	--     * `q` / `Q` (signed/unsigned 64 bits)
+	-- * Floating point types:
+	--     * `f` (32 bits)
+	--     * `d`, `n` (64 bits)
+	-- * String types:
+	--     * `z` (zero terminated string)
+	--     * `s` (string with preceding length information). Length is stored as a `vu32` encoded value
+	-- * Raw data:
+	--     * `c[length]` (up to 2 ^ 32 - 1 bytes)
+	-- * Boolean:
+	--     * `y` (8 bits boolean value)
+	-- * Table:
+	--     * `t` (table written with `BlobWriter:table`
+	-- * Other:
+	--     * `x` skip one byte
 	-- @param ... values to write
 	-- @treturn BlobWriter self
 	-- @usage writer\pack('Bfy', 255, 23.0, true)
