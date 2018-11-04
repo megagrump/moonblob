@@ -120,13 +120,17 @@ do
       return self
     end,
     cstring = function(self)
-      local start = self._readPtr
-      while self:u8() > 0 do
-        local _ = nil
+      local ptr, start = self._readPtr, self._readPtr
+      while ptr < self._size and self._data[ptr] > 0 do
+        ptr = ptr + 1
       end
-      local len = self._readPtr - start
+      if ptr == self._size then
+        error("Out of data")
+      end
+      local len
+      self._readPtr, len = ptr + 1, ptr - start
       assert(len < 2 ^ 32, "String too long")
-      return ffi.string(ffi.cast('uint8_t*', self._data + start), len - 1)
+      return ffi.string(ffi.cast('uint8_t*', self._data + start), len)
     end,
     array = function(self, valueType, result)
       if result == nil then

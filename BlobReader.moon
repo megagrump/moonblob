@@ -220,11 +220,13 @@ class BlobReader
 	-- Keeps reading bytes until a null byte is encountered.
 	-- @treturn string The string read from the input data
 	cstring: =>
-		start = @_readPtr
-		while @u8! > 0 nil
-		len = @_readPtr - start
+		ptr, start = @_readPtr, @_readPtr
+		while ptr < @_size and @_data[ptr] > 0
+			ptr += 1
+		error("Out of data") if ptr == @_size
+		@_readPtr, len = ptr + 1, ptr - start
 		assert(len < 2 ^ 32, "String too long")
-		ffi.string(ffi.cast('uint8_t*', @_data + start), len - 1)
+		ffi.string(ffi.cast('uint8_t*', @_data + start), len)
 
 	--- Reads a sequential table of typed values.
 	--
