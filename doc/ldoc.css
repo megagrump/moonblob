@@ -70,7 +70,7 @@ body {
     background-color: #ffffff; margin: 0px;
 }
 
-code, tt, span.parameter { font-family: monospace; font-size: 1.1em; background-color: #e8e8e8; padding: 0px 4px}
+code, tt, span.parameter { font-family: monospace; font-size: 1.1em; background-color: #f0f0f0; padding: 0px 4px; }
 span.parameter:after { content:""; }
 span.types:before { content:"("; }
 span.types:after { content:"):"; }
@@ -82,7 +82,7 @@ p, ul { margin: 10px 0 0 0px;}
 
 strong { font-weight: bold;}
 
-em { font-style: italic;}
+em { font-style: italic; font-size: 0.75em; }
 
 h1 {
     font-size: 1.5em;
