@@ -259,7 +259,7 @@ class BlobReader
 	--
 	--     `n` defaults to 1 if no length was specified.
 	-- @return All values parsed from the input data
-	-- @usage byte, float, bool = reader\unpack('x4Bfy') -- skips 4 bytes before
+	-- @usage byte, float, bool = reader\unpack('x4Bfy') -- skips 4 bytes before actual data
 	-- @see BlobWriter:pack
 	unpack: (format) =>
 		assert(type(format) == 'string', "Invalid format specifier")
