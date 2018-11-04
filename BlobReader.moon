@@ -82,11 +82,12 @@ class BlobReader
 	--- Reads a Lua table from the input data.
 	--
 	-- The table must have been written by BlobWriter.write or BlobWriter.table.
+	--
+	-- @tparam[opt] table result Table to put values in
 	-- @treturn table The table read from the input data
 	-- @see BlobWriter:table
 	-- @see BlobWriter:write
-	table: =>
-		result = {}
+	table: (result = {}) =>
 		tag, key = @_readTagged!
 		while tag ~= _tags.stop
 			tag, result[key] = @_readTagged!
