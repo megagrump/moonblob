@@ -21,7 +21,7 @@ while not at_end and blob\position! < blob\size! do
 
 	switch type
 		when 'IHDR'
-			width, height, bpp = blob\unpack('LLB    ')
+			width, height, bpp = blob\unpack('LLBxxxx')
 			print("Image width: #{width} pixels")
 			print("Image height: #{height} pixels")
 			print("Bit depth: #{bpp} bpp")
