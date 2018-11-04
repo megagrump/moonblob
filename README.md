@@ -67,7 +67,7 @@ A low level interface is provided for handling arbitrary binary data.
 	Blob*\s16  / Blob*\u16   -- signed/unsigned 16 bit integer value
 	Blob*\s32  / Blob*\u32   -- signed/unsigned 32 bit integer value
 	Blob*\s64  / Blob*\u64   -- signed/unsigned 64 bit integer value
-	Blob*\vs32 / Blob*\vu32  -- length-optimized 32 bit value written by BlobWriter\vs32/vu32
+	Blob*\vs32 / Blob*\vu32  -- length-optimized 32 bit value
 	Blob*\f32                -- 32 bit floating point value
 	Blob*\f64 / Blob*\number -- Lua number (64 bit floating point)
 	Blob*\bool               -- boolean value (8 bits; 0 == false)
