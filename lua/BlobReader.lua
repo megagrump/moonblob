@@ -27,8 +27,10 @@ do
     bool = function(self)
       return self:u8() ~= 0
     end,
-    table = function(self)
-      local result = { }
+    table = function(self, result)
+      if result == nil then
+        result = { }
+      end
       local tag, key = self:_readTagged()
       while tag ~= _tags.stop do
         tag, result[key] = self:_readTagged()
