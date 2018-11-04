@@ -233,7 +233,7 @@ class BlobWriter
 	--     * `b` / `B` (signed/unsigned 8 bits)
 	--     * `h` / `H` (signed/unsigned 16 bits)
 	--     * `l` / `L` (signed/unsigned 32 bits)
-	--     * `v` / `V` (signed/unsigned variable length 32 bits) - see `BlobReader:vs32` / `BlobReader:vu32`
+	--     * `v` / `V` (signed/unsigned variable length 32 bits) - see `BlobWriter:vs32` / `BlobWriter:vu32`
 	--     * `q` / `Q` (signed/unsigned 64 bits)
 	-- * Floating point types:
 	--     * `f` (32 bits)
