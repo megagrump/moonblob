@@ -146,13 +146,18 @@ do
     end,
     unpack = function(self, format)
       assert(type(format) == 'string', "Invalid format specifier")
-      local result, len = { }, nil
-      local _readRaw
-      _readRaw = function()
+      local result, len, lenContext = { }, nil, nil
+      local raw
+      raw = function()
         local l = tonumber(table.concat(len))
         assert(l, l or "Invalid string length specification: " .. tostring(table.concat(len)))
         assert(l < 2 ^ 32, "Maximum string length exceeded")
         table.insert(result, self:raw(l))
+        len = nil
+      end
+      local skip
+      skip = function()
+        self:skip(tonumber(table.concat(len)) or 1)
         len = nil
       end
       format:gsub('.', function(c)
@@ -160,14 +165,17 @@ do
           if tonumber(c) then
             table.insert(len, c)
           else
-            _readRaw()
+            lenContext()
           end
         end
         if not (len) then
           local parser = _unpackMap[c]
           assert(parser, parser or "Invalid data type specifier: " .. tostring(c))
-          if c == 'c' then
-            len = { }
+          local _exp_0 = c
+          if 'c' == _exp_0 then
+            len, lenContext = { }, raw
+          elseif 'x' == _exp_0 then
+            len, lenContext = { }, skip
           else
             local parsed = parser(self)
             if parsed ~= nil then
@@ -177,7 +185,7 @@ do
         end
       end)
       if len then
-        _readRaw()
+        lenContext()
       end
       return unpack(result)
     end,
