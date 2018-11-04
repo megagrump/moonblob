@@ -394,6 +394,103 @@ test_Reader_unpack = ->
 		lu.assertEquals(d5, 0x12345678)
 		lu.assertEquals(s1, 'end')
 
+test_Writer_array = ->
+	_testTypeSize = (type, values, valueSize) ->
+		b = BlobWriter!
+		b\array(type, values)
+		lu.assertEquals(b\length!, #values * valueSize + 1)
+
+	size1 = { 's8', 'u8', 'vs32', 'vu32' }
+	for i = 1, #size1
+		_testTypeSize(size1[i], { 23, 42, 127 }, 1)
+	size2 = { 's16', 'u16', 'vs32', 'vu32' }
+	for i = 1, #size2
+		_testTypeSize(size2[i], { 6623, 6642, 6127 }, 2)
+	size4 = { 's32', 'u32', 'f32', 'vs32', 'vu32' }
+	for i = 1, #size4
+		_testTypeSize(size4[i], { 123456623, 32145664, 5456127 }, 4)
+	size8 = { 's64', 'u64', 'f64', 'number' }
+	for i = 1, #size8
+		_testTypeSize(size8[i], { 0x123456789ab, 0xcf012312345, -1, -438 }, 8)
+
+	_testTypeSize('string', { 'test', '1234' }, 5)
+	_testTypeSize('cstring', { 'test2', '12345' }, 6)
+	_testTypeSize('bool', { true, false }, 1)
+
+	lu.assertErrorMsgContains('Invalid array', BlobWriter.array, BlobWriter!, 'inv', {})
+
+test_Reader_array = ->
+	w = BlobWriter!
+	w\array('u8', { 23, 42 })
+	w\array('s16', { 23, -42 })
+	w\array('u32', { 0x12345678, 0x87654321 })
+	w\array('vs32', { -0x12345678, 0x12345678 })
+	w\array('s64', { -23, 42 })
+	w\array('f32', { 23.1, 42.2 })
+	w\array('f64', { 23.23, 42.42 })
+	w\array('bool', { true, false })
+	w\array('string', { 'hello', 'world' })
+	w\array('cstring', { 'hello', 'world' })
+	w\array('table', { { hello: 'world', success: true, answer: 23 } })
+
+	r = BlobReader(w\tostring!)
+	u8 = r\array('u8')
+	lu.assertEquals(#u8, 2)
+	lu.assertEquals( u8[1], 23)
+	lu.assertEquals( u8[2], 42)
+
+	s16 = r\array('s16')
+	lu.assertEquals(#s16, 2)
+	lu.assertEquals( s16[1], 23)
+	lu.assertEquals( s16[2], -42)
+
+	u32 = r\array('u32')
+	lu.assertEquals(#u32, 2)
+	lu.assertEquals( u32[1], 0x12345678)
+	lu.assertEquals( u32[2], 0x87654321)
+
+	vs32 = r\array('vs32')
+	lu.assertEquals(#vs32, 2)
+	lu.assertEquals( vs32[1], -0x12345678)
+	lu.assertEquals( vs32[2], 0x12345678)
+
+	s64 = r\array('s64')
+	lu.assertEquals(#s64, 2)
+	lu.assertEquals( s64[1], -23LL)
+	lu.assertEquals( s64[2], 42LL)
+
+	f32 = r\array('f32')
+	lu.assertEquals(#f32, 2)
+	lu.assertAlmostEquals( f32[1], 23.1, .01)
+	lu.assertAlmostEquals( f32[2], 42.2, .01)
+
+	f64 = r\array('f64')
+	lu.assertEquals(#f64, 2)
+	lu.assertAlmostEquals( f64[1], 23.23, .01)
+	lu.assertAlmostEquals( f64[2], 42.42, .01)
+
+	bool = r\array('bool')
+	lu.assertEquals(#bool, 2)
+	lu.assertTrue(bool[1])
+	lu.assertFalse(bool[2])
+
+	str = r\array('string')
+	lu.assertEquals(#str, 2)
+	lu.assertEquals(str[1], 'hello')
+	lu.assertEquals(str[2], 'world')
+
+	cstr = r\array('cstring')
+	lu.assertEquals(#cstr, 2)
+	lu.assertEquals(cstr[1], 'hello')
+	lu.assertEquals(cstr[2], 'world')
+
+	tbl = r\array('table')
+	lu.assertEquals(#tbl, 1)
+	with tbl[1]
+		lu.assertEquals(.hello, 'world')
+		lu.assertTrue(.success)
+		lu.assertEquals(.answer, 23)
+
 test_xxxLastCheckGlobals = ->
 	for k, v in pairs(_G)
 		unless k\match('^test_.*')

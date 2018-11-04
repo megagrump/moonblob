@@ -3,7 +3,7 @@ ffi = require('ffi')
 band, bnot, shr = bit.band, bit.bnot, bit.rshift
 
 local _native, _byteOrder, _parseByteOrder
-local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap
+local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 
 --- Writes binary data to memory.
 class BlobWriter
@@ -214,6 +214,28 @@ class BlobWriter
 		_native.s32[0] = value
 		@vu32(_native.u32[0])
 
+	--- Writes a sequential table of values. All values must be of the same type.
+	--
+	-- @tparam string valueType Type of the values in the array
+	--
+	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
+	-- `number`, `string`, `bool`, `cstring`, and `table`.
+	--
+	-- Stores the array length as a `vu32` encoded value before the actual table values.
+	--
+	-- @tparam table array A sequential table of values of type `valueType`
+	--
+	-- Maximum allowed length is `2 ^ 32 - 1` values.
+	-- Behavior is undefined for table keys that are not sequential, or not starting at index 1.
+	--
+	-- @treturn BlobWriter self
+	array: (valueType, array) =>
+		writer = _arrayTypeMap[valueType]
+		assert(writer, writer or "Invalid array type <#{valueType}")
+		@vu32(#array)
+		writer(@, v) for v in *array
+		@
+
 	--- Writes data to the output buffer according to a format string.
 	--
 	-- @tparam string format Data format descriptor string.
@@ -392,6 +414,26 @@ _taggedWriters = {
 	=> @ -- true is stored as tag, write nothing
 	=> @ -- false is stored as tag, write nothing
 }
+
+with BlobWriter
+	_arrayTypeMap =
+		s8:      .s8
+		u8:      .u8
+		s16:     .s16
+		u16:     .u16
+		s32:     .s32
+		u32:     .u32
+		s64:     .s64
+		u64:     .u64
+		vs32:    .vs32
+		vu32:    .vu32
+		f32:     .f32
+		f64:     .f64
+		number:  .number
+		string:  .string
+		cstring: .cstring
+		bool:    .bool
+		table:   .table
 
 with BlobWriter
 	_packMap =

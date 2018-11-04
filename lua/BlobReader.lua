@@ -1,7 +1,7 @@
 local ffi = require('ffi')
 local band = bit.band
 local _native, _endian, _parseByteOrder
-local _tags, _getTag, _taggedReaders, _unpackMap
+local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 local BlobReader
 do
   local _class_0
@@ -125,6 +125,18 @@ do
       local len = self._readPtr - start
       assert(len < 2 ^ 32, "String too long")
       return ffi.string(ffi.cast('uint8_t*', self._data + start), len - 1)
+    end,
+    array = function(self, valueType, result)
+      if result == nil then
+        result = { }
+      end
+      local reader = _arrayTypeMap[valueType]
+      assert(reader, reader or "Invalid array type <" .. tostring(valueType))
+      local length = self:vu32()
+      for i = 1, length do
+        result[#result + 1] = reader(self)
+      end
+      return result
     end,
     unpack = function(self, format)
       assert(type(format) == 'string', "Invalid format specifier")
@@ -297,6 +309,27 @@ _taggedReaders = {
     return false
   end
 }
+do
+  _arrayTypeMap = {
+    s8 = BlobReader.s8,
+    u8 = BlobReader.u8,
+    s16 = BlobReader.s16,
+    u16 = BlobReader.u16,
+    s32 = BlobReader.s32,
+    u32 = BlobReader.u32,
+    s64 = BlobReader.s64,
+    u64 = BlobReader.u64,
+    vs32 = BlobReader.vs32,
+    vu32 = BlobReader.vu32,
+    f32 = BlobReader.f32,
+    f64 = BlobReader.f64,
+    number = BlobReader.number,
+    string = BlobReader.string,
+    cstring = BlobReader.cstring,
+    bool = BlobReader.bool,
+    table = BlobReader.table
+  }
+end
 do
   _unpackMap = {
     b = BlobReader.s8,

@@ -1,7 +1,7 @@
 local ffi = require('ffi')
 local band, bnot, shr = bit.band, bit.bnot, bit.rshift
 local _native, _byteOrder, _parseByteOrder
-local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap
+local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 local BlobWriter
 do
   local _class_0
@@ -114,6 +114,16 @@ do
       assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value range")
       _native.s32[0] = value
       return self:vu32(_native.u32[0])
+    end,
+    array = function(self, valueType, array)
+      local writer = _arrayTypeMap[valueType]
+      assert(writer, writer or "Invalid array type <" .. tostring(valueType))
+      self:vu32(#array)
+      for _index_0 = 1, #array do
+        local v = array[_index_0]
+        writer(self, v)
+      end
+      return self
     end,
     pack = function(self, format, ...)
       assert(type(format) == 'string', "Invalid format specifier")
@@ -280,6 +290,27 @@ _taggedWriters = {
     return self
   end
 }
+do
+  _arrayTypeMap = {
+    s8 = BlobWriter.s8,
+    u8 = BlobWriter.u8,
+    s16 = BlobWriter.s16,
+    u16 = BlobWriter.u16,
+    s32 = BlobWriter.s32,
+    u32 = BlobWriter.u32,
+    s64 = BlobWriter.s64,
+    u64 = BlobWriter.u64,
+    vs32 = BlobWriter.vs32,
+    vu32 = BlobWriter.vu32,
+    f32 = BlobWriter.f32,
+    f64 = BlobWriter.f64,
+    number = BlobWriter.number,
+    string = BlobWriter.string,
+    cstring = BlobWriter.cstring,
+    bool = BlobWriter.bool,
+    table = BlobWriter.table
+  }
+end
 do
   _packMap = {
     b = BlobWriter.s8,

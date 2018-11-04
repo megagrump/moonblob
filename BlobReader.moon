@@ -3,7 +3,7 @@ ffi = require('ffi')
 band = bit.band
 
 local _native, _endian, _parseByteOrder
-local _tags, _getTag, _taggedReaders, _unpackMap
+local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 
 --- Parses binary data from memory.
 class BlobReader
@@ -225,6 +225,25 @@ class BlobReader
 		assert(len < 2 ^ 32, "String too long")
 		ffi.string(ffi.cast('uint8_t*', @_data + start), len - 1)
 
+	--- Reads a sequential table of typed values.
+	--
+	-- Expects preceding `vu32` encoded array length information, as written by `BlobWriter:array`.
+	--
+	-- @tparam string valueType Type of the values in the array
+	--
+	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
+	-- `number`, `string`, `bool`, `cstring`, and `table`.
+	--
+	-- @tparam[opt] table result Table to put the values in
+	-- @treturn table A sequential table, starting at index 1
+	-- @see BlobWriter:array
+	array: (valueType, result = {}) =>
+		reader = _arrayTypeMap[valueType]
+		assert(reader, reader or "Invalid array type <#{valueType}")
+		length = @vu32!
+		result[#result + 1] = reader(@) for i = 1, length
+		result
+
 	--- Parses data into separate values according to a format string.
 	--
 	-- See `BlobWriter:pack` for a list of supported format specifiers.
@@ -365,6 +384,26 @@ _taggedReaders = {
 	=> true
 	=> false
 }
+
+with BlobReader
+	_arrayTypeMap =
+		s8:      .s8
+		u8:      .u8
+		s16:     .s16
+		u16:     .u16
+		s32:     .s32
+		u32:     .u32
+		s64:     .s64
+		u64:     .u64
+		vs32:    .vs32
+		vu32:    .vu32
+		f32:     .f32
+		f64:     .f64
+		number:  .number
+		string:  .string
+		cstring: .cstring
+		bool:    .bool
+		table:   .table
 
 with BlobReader
 	_unpackMap =
