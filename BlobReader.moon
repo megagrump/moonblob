@@ -259,7 +259,7 @@ class BlobReader
 	--     * `y` (8 bits boolean value)
 	-- * Table:
 	--     * `t` (table written with `BlobWriter:table`
-	-- * "` `" (a single space character): skip one byte
+	-- * `x` skip one byte
 	-- @return All values parsed from the input data
 	-- @usage byte, float, bool = reader\unpack('Bfy')
 	-- @see BlobWriter:pack
@@ -418,9 +418,9 @@ with BlobReader
 		z: .cstring
 		t: .table
 		y: .bool
+		x: => nil, @skip(1)
 		['<']: => nil, @setByteOrder('<')
 		['>']: => nil, @setByteOrder('>')
 		['=']: => nil, @setByteOrder('=')
-		[' ']: => nil, @skip(1)
 
 BlobReader

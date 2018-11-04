@@ -317,6 +317,9 @@ do
     z = BlobReader.cstring,
     t = BlobReader.table,
     y = BlobReader.bool,
+    x = function(self)
+      return nil, self:skip(1)
+    end,
     ['<'] = function(self)
       return nil, self:setByteOrder('<')
     end,
@@ -325,9 +328,6 @@ do
     end,
     ['='] = function(self)
       return nil, self:setByteOrder('=')
-    end,
-    [' '] = function(self)
-      return nil, self:skip(1)
     end
   }
 end

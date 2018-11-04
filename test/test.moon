@@ -202,7 +202,7 @@ test_LargeString = ->
 
 test_pack_unpack = ->
 	w = BlobWriter!\pack('<BHB>L=QvV', 255, 65535, 0, 2 ^ 32 - 1, 9876543210123ULL, -2 ^ 31, 2 ^ 31)
-	B, H, L, Q, v, V = BlobReader(w\tostring!)\unpack('<BH >L=QvV')
+	B, H, L, Q, v, V = BlobReader(w\tostring!)\unpack('<BHx>L=QvV')
 	lu.assertEquals(B, 255)
 	lu.assertEquals(H, 65535)
 	lu.assertEquals(L, 2 ^ 32 - 1)
@@ -285,7 +285,7 @@ test_unpack = ->
 			\raw('rawtest12345')
 
 		reader = BlobReader(w\tostring!)
-		b, B, h, H, l, L, V, q, Q, f, d, n, c8, yf, yt, s, t, c12 = reader\unpack(endian .. 'bBhHlLVqQ fdnc8yystc12')
+		b, B, h, H, l, L, V, q, Q, f, d, n, c8, yf, yt, s, t, c12 = reader\unpack(endian .. 'bBhHlLVqQxfdnc8yystc12')
 		lu.assertEquals(b, -12)
 		lu.assertEquals(B, 200)
 		lu.assertEquals(h, -1019)
