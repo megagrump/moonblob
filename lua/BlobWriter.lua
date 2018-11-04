@@ -117,7 +117,7 @@ do
     end,
     array = function(self, valueType, array)
       local writer = _arrayTypeMap[valueType]
-      assert(writer, writer or "Invalid array type <" .. tostring(valueType))
+      assert(writer, writer or "Invalid array type <" .. tostring(valueType) .. ">")
       self:vu32(#array)
       for _index_0 = 1, #array do
         local v = array[_index_0]

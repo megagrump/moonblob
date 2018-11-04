@@ -242,7 +242,7 @@ class BlobReader
 	-- @see BlobWriter:array
 	array: (valueType, result = {}) =>
 		reader = _arrayTypeMap[valueType]
-		assert(reader, reader or "Invalid array type <#{valueType}")
+		assert(reader, reader or "Invalid array type <#{valueType}>")
 		length = @vu32!
 		result[#result + 1] = reader(@) for i = 1, length
 		result

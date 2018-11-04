@@ -239,7 +239,7 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	array: (valueType, array) =>
 		writer = _arrayTypeMap[valueType]
-		assert(writer, writer or "Invalid array type <#{valueType}")
+		assert(writer, writer or "Invalid array type <#{valueType}>")
 		@vu32(#array)
 		writer(@, v) for v in *array
 		@

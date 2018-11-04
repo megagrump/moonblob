@@ -137,7 +137,7 @@ do
         result = { }
       end
       local reader = _arrayTypeMap[valueType]
-      assert(reader, reader or "Invalid array type <" .. tostring(valueType))
+      assert(reader, reader or "Invalid array type <" .. tostring(valueType) .. ">")
       local length = self:vu32()
       for i = 1, length do
         result[#result + 1] = reader(self)
