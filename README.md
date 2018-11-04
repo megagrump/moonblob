@@ -75,6 +75,7 @@ A low level interface is provided for handling arbitrary binary data.
 	Blob*\table              -- table written by writeTable()
 	Blob*\raw                -- raw binary data (length must be specified)
 	Blob*\cstring            -- zero-terminated string
+	Blob*\array              -- sequential table of typed values
 
 To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader:unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API documentation](https://megagrump.github.io/moonblob/doc) for details.
 
