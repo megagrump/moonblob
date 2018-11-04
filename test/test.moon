@@ -210,6 +210,13 @@ test_pack_unpack = ->
 	lu.assertEquals(v, -2 ^ 31)
 	lu.assertEquals(V, 2 ^ 31)
 
+test_unpack_skipMultiple = ->
+	w = BlobWriter!\s64(123456789)\s32(42)
+	l = BlobReader(w\tostring!)\unpack('xxxxxxxxl')
+	lu.assertEquals(l, 42)
+	l = BlobReader(w\tostring!)\unpack('x8l')
+	lu.assertEquals(l, 42)
+
 test_pack = ->
 	float, double = 123.45, 981273.12
 	for _, endian in ipairs({ '<', '>', '=' })

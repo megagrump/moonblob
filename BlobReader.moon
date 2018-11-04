@@ -249,19 +249,31 @@ class BlobReader
 
 	--- Parses data into separate values according to a format string.
 	--
-	-- See `BlobWriter:pack` for a list of supported format specifiers.
+	-- @tparam string format Data format specification
+	--
+	-- See `BlobWriter:pack` for a list of supported identifiers.
+	--
+	-- Additional format specifiers for unpack:
+	--
+	-- * `x[n]`: skip `n` bytes of data
+	--
+	--     `n` defaults to 1 if no length was specified.
 	-- @return All values parsed from the input data
-	-- @usage byte, float, bool = reader\unpack('Bfy')
+	-- @usage byte, float, bool = reader\unpack('x4Bfy') -- skips 4 bytes before
 	-- @see BlobWriter:pack
 	unpack: (format) =>
 		assert(type(format) == 'string', "Invalid format specifier")
-		result, len = {}, nil
+		result, len, lenContext = {}, nil, nil
 
-		_readRaw = ->
+		raw = ->
 			l = tonumber(table.concat(len))
 			assert(l, l or "Invalid string length specification: #{table.concat(len)}")
 			assert(l < 2 ^ 32, "Maximum string length exceeded")
 			table.insert(result, @raw(l))
+			len = nil
+
+		skip = ->
+			@skip(tonumber(table.concat(len)) or 1)
 			len = nil
 
 		format\gsub('.', (c) ->
@@ -269,19 +281,22 @@ class BlobReader
 				if tonumber(c)
 					table.insert(len, c)
 				else
-					_readRaw!
+					lenContext!
 
 			unless len
 				parser = _unpackMap[c]
 				assert(parser, parser or "Invalid data type specifier: #{c}")
-				if c == 'c'
-					len = {}
-				else
-					parsed = parser(@)
-					table.insert(result, parsed) if parsed ~= nil
+				switch c
+					when 'c'
+						len, lenContext = {}, raw
+					when 'x'
+						len, lenContext = {}, skip
+					else
+						parsed = parser(@)
+						table.insert(result, parsed) if parsed ~= nil
 		)
 
-		_readRaw! if len -- final specifier in format was a length specifier
+		lenContext! if len -- final specifier in format was a length specifier
 		unpack(result)
 
 	--- Returns the size of the input data in bytes.
