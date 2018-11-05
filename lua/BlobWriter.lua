@@ -1,13 +1,13 @@
 local ffi = require('ffi')
 local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 local _native, _byteOrder, _parseByteOrder
-local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _orderBytes, _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 local BlobWriter
 do
   local _class_0
   local _base_0 = {
     setByteOrder = function(self, byteOrder)
-      self._orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
+      _orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
       return self
     end,
     write = function(self, value)
@@ -41,7 +41,7 @@ do
       if len + 2 > self._size then
         self:_grow(2)
       end
-      self._data[len], self._data[len + 1] = self:_orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
+      self._data[len], self._data[len + 1] = _orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
       self._length = self._length + 2
       return self
     end,
@@ -54,9 +54,9 @@ do
       if len + 4 > self._size then
         self:_grow(4)
       end
-      local w1, w2 = self:_orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
-      local b1, b2 = self:_orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
-      local b3, b4 = self:_orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
+      local w1, w2 = _orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
+      local b1, b2 = _orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
+      local b3, b4 = _orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
       self._data[len], self._data[len + 1], self._data[len + 2], self._data[len + 3] = b1, b2, b3, b4
       self._length = self._length + 4
       return self
@@ -95,12 +95,12 @@ do
     end,
     u64 = function(self, value)
       _native.u64 = value
-      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
+      local a, b = _orderBytes(_native.u32[0], _native.u32[1])
       return self:u32(a):u32(b)
     end,
     s64 = function(self, value)
       _native.s64 = value
-      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
+      local a, b = _orderBytes(_native.u32[0], _native.u32[1])
       return self:u32(a):u32(b)
     end,
     f32 = function(self, value)
@@ -246,7 +246,7 @@ do
     _writeTable = function(self, t, stack)
       stack = stack or { }
       local ttype = type(t)
-      assert(ttype == 'table', ttype == 'table' or string.format("Invalid type '%s' for BlobWriter:table", ttype))
+      assert(ttype == 'table', ttype == 'table' or "Invalid type '" .. tostring(ttype) .. "' for BlobWriter:table")
       assert(not stack[t], "Cycle detected; can't serialize table")
       stack[t] = true
       for key, value in pairs(t) do
@@ -258,7 +258,7 @@ do
     end,
     _writeTagged = function(self, value, stack)
       local tag = _getTag(value)
-      assert(tag, tag or string.format("Can't write values of type '%s'", type(value)))
+      assert(tag, tag or "Can't write values of type '" .. tostring(type(value)) .. "'")
       self:u8(tag)
       return _taggedWriters[tag](self, value, stack)
     end
@@ -297,10 +297,10 @@ _native = ffi.new([[	union {
 	}
 ]])
 _byteOrder = {
-  le = function(self, v1, v2)
+  le = function(v1, v2)
     return v1, v2
   end,
-  be = function(self, v1, v2)
+  be = function(v1, v2)
     return v2, v1
   end
 }
@@ -312,18 +312,18 @@ _tags = {
   [true] = 4,
   [false] = 5
 }
-_taggedWriters = {
-  BlobWriter.number,
-  BlobWriter.string,
-  BlobWriter._writeTable,
-  function(self)
-    return self
-  end,
-  function(self)
-    return self
-  end
-}
 do
+  _taggedWriters = {
+    BlobWriter.number,
+    BlobWriter.string,
+    BlobWriter._writeTable,
+    function(self)
+      return self
+    end,
+    function(self)
+      return self
+    end
+  }
   _arrayTypeMap = {
     s8 = BlobWriter.s8,
     u8 = BlobWriter.u8,
@@ -343,8 +343,6 @@ do
     bool = BlobWriter.bool,
     table = BlobWriter.table
   }
-end
-do
   _packMap = {
     b = BlobWriter.s8,
     B = BlobWriter.u8,
