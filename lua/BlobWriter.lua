@@ -203,8 +203,21 @@ do
       return 5
     end,
     vs32size = function(self, value)
-      _native.s32[0] = math.abs(value) + 1
-      return self:vu32size(_native.u32[0])
+      assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+      value = math.abs(value) + 1
+      if value < 2 ^ 7 then
+        return 1
+      end
+      if value < 2 ^ 14 then
+        return 2
+      end
+      if value < 2 ^ 21 then
+        return 3
+      end
+      if value < 2 ^ 28 then
+        return 4
+      end
+      return 5
     end,
     _allocate = function(self, size)
       local data
