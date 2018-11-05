@@ -139,8 +139,8 @@ class BlobWriter
 	-- * `value >= 268435456`: 5 bytes
 	--
 	-- @tparam number value The unsigned integer value to write
-	-- @see BlobWriter:vu32size
 	-- @treturn BlobWriter self
+	-- @see BlobWriter:vu32size
 	vu32: (value) =>
 		assert(value < 2 ^ 32, "Exceeded u32 value limits")
 
@@ -163,8 +163,8 @@ class BlobWriter
 	-- * `abs(value) >= 268435455`: 5 bytes
 	--
 	-- @tparam number value The signed integer value to write
-	-- @see BlobWriter:vu32
 	-- @treturn BlobWriter self
+	-- @see BlobWriter:vu32
 	vs32: (value) =>
 		assert(value < 2 ^ 31 and value >= -2^31, "Exceeded s32 value limits")
 
@@ -191,9 +191,9 @@ class BlobWriter
 
 	--- Writes a signed 64 bit value to the output buffer.
 	--
-	-- @see BlobWriter:u64
-	-- @tparam number s64 The value to write
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
+	-- @see BlobWriter:u64
 	s64: (value) =>
 		_native.s64 = value
 		a, b = @_orderBytes(_native.u32[0], _native.u32[1])
@@ -248,7 +248,7 @@ class BlobWriter
 	--
 	-- Stores the array length as a `vu32` encoded value before the actual table values.
 	--
-	-- @tparam table array A sequential table of values of type `valueType`
+	-- @tparam table value A sequential table of values of type `valueType`
 	--
 	-- Maximum allowed length is `2 ^ 32 - 1` values.
 	-- Behavior is undefined for table keys that are not sequential, or not starting at index 1.
