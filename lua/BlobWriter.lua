@@ -177,6 +177,14 @@ do
       end
       return self
     end,
+    clear = function(self, size)
+      self._length = 0
+      if size then
+        self._data = nil
+        self:_allocate(size)
+      end
+      return self
+    end,
     tostring = function(self)
       return ffi.string(self._data, self._length)
     end,

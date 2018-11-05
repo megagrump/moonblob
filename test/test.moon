@@ -556,4 +556,11 @@ test_xxxLastCheckGlobals = ->
 			print('\nLEAKED GLOBAL:', k) if _globals[k] == nil
 			isTrue(_globals[k] ~= nil)
 
+test_Writer_clear = ->
+	b = BlobWriter(nil, 1)
+	b\u8(1)
+	b\clear!
+	equals(b\size!, 1)
+	equals(b\length!, 0)
+
 lu.LuaUnit.new!\runSuite!

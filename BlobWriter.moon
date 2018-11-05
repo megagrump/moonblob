@@ -344,6 +344,17 @@ class BlobWriter
 
 	-----------------------------------------------------------------------------
 
+	--- Clears the blob and discards all buffered data.
+	--
+	-- @tparam[opt] number size Set the writer buffer size to this value. If `nil`, the currently allocated buffer
+	-- is reused.
+	clear: (size) =>
+		@_length = 0
+		if size
+			@_data = nil
+			@_allocate(size)
+		@
+
 	--- Returns the current buffer contents as a string.
 	--
 	-- @treturn string A string with the current buffer contents
