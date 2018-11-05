@@ -132,12 +132,15 @@ class BlobWriter
 	--
 	-- Space requirements:
 	--
-	-- * `value < 128`: 1 byte
-	-- * `value < 16384`: 2 bytes
-	-- * `value < 2097152`: 3 bytes
-	-- * `value < 268435456`: 4 bytes
-	-- * `value >= 268435456`: 5 bytes
+	--     | lower bound | upper bound | # bytes |
+	--     |-------------|-------------|---------|
+	--     |           0 |         127 |    1    |
+	--     |         128 |       16383 |    2    |
+	--     |       16384 |     2097151 |    3    |
+	--     |     2097151 |   268435455 |    4    |
+	--     |   268435456 |  4294967295 |    5    |
 	--
+	-- @{vu32size} computes the space requirement for an unsigned integer value.
 	-- @tparam number value The unsigned integer value to write
 	-- @treturn BlobWriter self
 	-- @see BlobWriter:vu32size
@@ -155,16 +158,23 @@ class BlobWriter
 	-- The value is written in an encoded format. The length depends on the value; larger values need more space.
 	--
 	-- Space requirements:
+	-- 	| lower bound | upper bound | # bytes |
+	-- 	|-------------|-------------|---------|
+	-- 	| -2147483648 |  -268435455 |    5    |
+	-- 	|  -268435454 |    -2097151 |    4    |
+	-- 	|   -2097150  |      -16383 |    3    |
+	-- 	|     -16382  |        -127 |    2    |
+	-- 	|       -126  |         126 |    1    |
+	-- 	|        127  |       16382 |    2    |
+	-- 	|      16383  |     2097150 |    3    |
+	-- 	|    2097151  |   268435454 |    4    |
+	-- 	|  268435455  |  2147483647 |    5    |
 	--
-	-- * `abs(value) < 127`: 1 byte
-	-- * `abs(value) < 16383`: 2 bytes
-	-- * `abs(value) < 2097151`: 3 bytes
-	-- * `abs(value) < 268435455`: 4 bytes
-	-- * `abs(value) >= 268435455`: 5 bytes
-	--
+	-- @{vs32size} computes the space requirement for a signed integer value.
 	-- @tparam number value The signed integer value to write
 	-- @treturn BlobWriter self
 	-- @see BlobWriter:vu32
+	-- @see BlobWriter:vs32size
 	vs32: (value) =>
 		assert(value < 2 ^ 31 and value >= -2^31, "Exceeded s32 value limits")
 
@@ -280,7 +290,7 @@ class BlobWriter
 	--     * `b` / `B`: signed/unsigned 8 bits
 	--     * `h` / `H`: signed/unsigned 16 bits
 	--     * `l` / `L`: signed/unsigned 32 bits
-	--     * `v` / `V`: signed/unsigned variable length 32 bits (see `BlobWriter:vs32` / `BlobWriter:vu32`)
+	--     * `v` / `V`: signed/unsigned variable length 32 bits (see @{vs32} / @{vu32})
 	--     * `q` / `Q`: signed/unsigned 64 bits
 	-- * Boolean:
 	--     * `y`: 8 bits boolean value
@@ -293,7 +303,7 @@ class BlobWriter
 	-- * Raw data:
 	--     * `c[length]`: Raw binary data
 	-- * Table:
-	--     * `t`: table as written by `BlobWriter:table`
+	--     * `t`: table as written by @{table}
 	--
 	-- @param ... values to write
 	-- @treturn BlobWriter self
@@ -349,10 +359,10 @@ class BlobWriter
 	-- @treturn number Write buffer size in bytes
 	size: => @_size
 
-	--- Returns the number of bytes required to store an unsigned 32 bit value when written by `BlobWriter:vu32`.
+	--- Returns the number of bytes required to store an unsigned 32 bit value when written by @{vu32}.
 	--
 	-- @tparam number value The unsigned 32 bit value to write
-	-- @treturn number The number of bytes required by `BlobWriter:vu32` to store `value`
+	-- @treturn number The number of bytes required by @{vu32} to store `value`
 	vu32size: (value) =>
 		assert(value < 2 ^ 32, "Exceeded u32 value limits")
 		return 1 if value < 2 ^ 7
@@ -361,13 +371,18 @@ class BlobWriter
 		return 4 if value < 2 ^ 28
 		5
 
-	--- Returns the number of bytes required to store a signed 32 bit value when written by `BlobWriter:vs32`.
+	--- Returns the number of bytes required to store a signed 32 bit value when written by @{vs32}.
 	--
 	-- @tparam number value The signed 32 bit value to write
-	-- @treturn number The number of bytes required by `BlobWriter:vs32` to store `value`
+	-- @treturn number The number of bytes required by @{vs32} to store `value`
 	vs32size: (value) =>
-		_native.s32[0] = math.abs(value) + 1
-		@vu32size(_native.u32[0])
+		assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+		value = math.abs(value) + 1
+		return 1 if value < 2 ^ 7
+		return 2 if value < 2 ^ 14
+		return 3 if value < 2 ^ 21
+		return 4 if value < 2 ^ 28
+		5
 
 	------------------------------------------------------------------------------------------------------
 

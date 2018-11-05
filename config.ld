@@ -3,7 +3,7 @@ file = {
 	"BlobWriter.moon",
 }
 
-backtick_references = true
+backtick_references = false
 format = 'markdown'
 project = 'moonblob'
 title = 'moonblob API documentation'

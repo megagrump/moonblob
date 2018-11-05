@@ -161,11 +161,11 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#vu32size">vu32size (value)</a></td>
-	<td class="summary">Returns the number of bytes required to store an unsigned 32 bit value when written by <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>.</td>
+	<td class="summary">Returns the number of bytes required to store an unsigned 32 bit value when written by <a href="../classes/BlobWriter.html#vu32">vu32</a>.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#vs32size">vs32size (value)</a></td>
-	<td class="summary">Returns the number of bytes required to store a signed 32 bit value when written by <a href="../classes/BlobWriter.html#vs32">BlobWriter:vs32</a>.</td>
+	<td class="summary">Returns the number of bytes required to store a signed 32 bit value when written by <a href="../classes/BlobWriter.html#vs32">vs32</a>.</td>
 	</tr>
 </table>
 
@@ -254,7 +254,7 @@
     <dd>
     Writes a value to the output buffer.  Determines the type of the value automatically.</p>
 
-<p> Supported value types are <a href="../classes/BlobWriter.html#number">number</a>, <a href="../classes/BlobWriter.html#string">string</a>, <code>boolean</code> and <a href="../classes/BlobWriter.html#table">table</a>.
+<p> Supported value types are <code>number</code>, <code>string</code>, <code>boolean</code> and <code>table</code>.
 
 
     <h3>Parameters:</h3>
@@ -338,7 +338,7 @@
     <dd>
     Writes a string to the output buffer. </p>
 
-<p> Stores the length of the string as a <a href="../classes/BlobWriter.html#vu32">vu32</a> field before the actual string data.
+<p> Stores the length of the string as a <code>vu32</code> field before the actual string data.
 
 
     <h3>Parameters:</h3>
@@ -527,22 +527,22 @@
     <strong>vu32 (value)</strong>
     </dt>
     <dd>
-
-<p>Writes a length-encoded unsigned 32 bit integer value. </p>
+    Writes a length-encoded unsigned 32 bit integer value. </p>
 
 <p> The value is written in an encoded format. The length depends on the value; larger values need more space.</p>
 
 <p> Space requirements:</p>
 
-<ul>
-    <li><code>value &lt; 128</code>: 1 byte</li>
-    <li><code>value &lt; 16384</code>: 2 bytes</li>
-    <li><code>value &lt; 2097152</code>: 3 bytes</li>
-    <li><code>value &lt; 268435456</code>: 4 bytes</li>
-    <li><code>value &gt;= 268435456</code>: 5 bytes</li>
-</ul>
+<pre><code> | lower bound | upper bound | # bytes |
+ |-------------|-------------|---------|
+ |           0 |         127 |    1    |
+ |         128 |       16383 |    2    |
+ |       16384 |     2097151 |    3    |
+ |     2097151 |   268435455 |    4    |
+ |   268435456 |  4294967295 |    5    |
+</code></pre>
 
-
+<p> <a href="../classes/BlobWriter.html#vu32size">vu32size</a> computes the space requirement for an unsigned integer value.
 
 
     <h3>Parameters:</h3>
@@ -573,22 +573,25 @@
     <strong>vs32 (value)</strong>
     </dt>
     <dd>
-
-<p>Writes a length-encoded signed 32 bit integer. </p>
+    Writes a length-encoded signed 32 bit integer. </p>
 
 <p> The value is written in an encoded format. The length depends on the value; larger values need more space.</p>
 
 <p> Space requirements:</p>
+<pre><code>| lower bound | upper bound | # bytes |
+|-------------|-------------|---------|
+| -2147483648 |  -268435455 |    5    |
+|  -268435454 |    -2097151 |    4    |
+|   -2097150  |      -16383 |    3    |
+|     -16382  |        -127 |    2    |
+|       -126  |         126 |    1    |
+|        127  |       16382 |    2    |
+|      16383  |     2097150 |    3    |
+|    2097151  |   268435454 |    4    |
+|  268435455  |  2147483647 |    5    |
+</code></pre>
 
-<ul>
-    <li><code>abs(value) &lt; 127</code>: 1 byte</li>
-    <li><code>abs(value) &lt; 16383</code>: 2 bytes</li>
-    <li><code>abs(value) &lt; 2097151</code>: 3 bytes</li>
-    <li><code>abs(value) &lt; 268435455</code>: 4 bytes</li>
-    <li><code>abs(value) &gt;= 268435455</code>: 5 bytes</li>
-</ul>
-
-
+<p> <a href="../classes/BlobWriter.html#vs32size">vs32size</a> computes the space requirement for a signed integer value.
 
 
     <h3>Parameters:</h3>
@@ -609,7 +612,8 @@
 
     <h3>See also:</h3>
     <ul>
-         <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>
+         <li><a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a></li>
+         <li><a href="../classes/BlobWriter.html#vs32size">BlobWriter:vs32size</a></li>
     </ul>
 
 
@@ -744,7 +748,7 @@
     <ul>
         <li><span class="parameter">value</span>
             <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a> or <span class="type">cdata</span></span>
-         A <a href="../classes/BlobWriter.html#string">string</a> or <code>cdata</code> with the data to write
+         A <code>string</code> or <code>cdata</code> with the data to write
         </li>
         <li><span class="parameter">length</span>
             <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
@@ -834,10 +838,10 @@
             <span class="types"><a class="type" href="../classes/BlobWriter.html#string">string</a></span>
          Type of the values in the array</p>
 
-<p> Valid types are <a href="../classes/BlobWriter.html#s8">s8</a>, <a href="../classes/BlobWriter.html#u8">u8</a>, <a href="../classes/BlobWriter.html#s16">s16</a>, <a href="../classes/BlobWriter.html#u16">u16</a>, <a href="../classes/BlobWriter.html#s32">s32</a>, <a href="../classes/BlobWriter.html#u32">u32</a>, <a href="../classes/BlobWriter.html#vs32">vs32</a>, <a href="../classes/BlobWriter.html#vu32">vu32</a>, <a href="../classes/BlobWriter.html#s64">s64</a>, <a href="../classes/BlobWriter.html#u64">u64</a>, <a href="../classes/BlobWriter.html#f32">f32</a>, <a href="../classes/BlobWriter.html#f64">f64</a>,
- <a href="../classes/BlobWriter.html#number">number</a>, <a href="../classes/BlobWriter.html#string">string</a>, <a href="../classes/BlobWriter.html#bool">bool</a>, <a href="../classes/BlobWriter.html#cstring">cstring</a>, and <a href="../classes/BlobWriter.html#table">table</a>.</p>
+<p> Valid types are <code>s8</code>, <code>u8</code>, <code>s16</code>, <code>u16</code>, <code>s32</code>, <code>u32</code>, <code>vs32</code>, <code>vu32</code>, <code>s64</code>, <code>u64</code>, <code>f32</code>, <code>f64</code>,
+ <code>number</code>, <code>string</code>, <code>bool</code>, <code>cstring</code>, and <code>table</code>.</p>
 
-<p> Stores the array length as a <a href="../classes/BlobWriter.html#vu32">vu32</a> encoded value before the actual table values.
+<p> Stores the array length as a <code>vu32</code> encoded value before the actual table values.
         </li>
         <li><span class="parameter">value</span>
             <span class="types"><a class="type" href="../classes/BlobWriter.html#table">table</a></span>
@@ -893,7 +897,7 @@
         <li><code>b</code> / <code>B</code>: signed/unsigned 8 bits</li>
         <li><code>h</code> / <code>H</code>: signed/unsigned 16 bits</li>
         <li><code>l</code> / <code>L</code>: signed/unsigned 32 bits</li>
-        <li><code>v</code> / <code>V</code>: signed/unsigned variable length 32 bits (see <a href="../classes/BlobWriter.html#vs32">BlobWriter:vs32</a> / <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>)</li>
+        <li><code>v</code> / <code>V</code>: signed/unsigned variable length 32 bits (see <a href="../classes/BlobWriter.html#vs32">vs32</a> / <a href="../classes/BlobWriter.html#vu32">vu32</a>)</li>
         <li><code>q</code> / <code>Q</code>: signed/unsigned 64 bits</li>
     </ul></li>
     <li><p>Boolean:</p>
@@ -908,7 +912,7 @@
     <li><p>String types:</p>
     <ul>
         <li><code>z</code>: zero terminated string</li>
-        <li><code>s</code>: string with preceding length information. Length is stored as a <a href="../classes/BlobWriter.html#vu32">vu32</a> encoded value</li>
+        <li><code>s</code>: string with preceding length information. Length is stored as a <code>vu32</code> encoded value</li>
     </ul></li>
     <li><p>Raw data:</p>
     <ul>
@@ -916,7 +920,7 @@
     </ul></li>
     <li><p>Table:</p>
     <ul>
-        <li><code>t</code>: table as written by <a href="../classes/BlobWriter.html#table">BlobWriter:table</a></li>
+        <li><code>t</code>: table as written by <a href="../classes/BlobWriter.html#table">table</a></li>
     </ul></li>
 </ul>
 
@@ -1011,7 +1015,7 @@
     <strong>vu32size (value)</strong>
     </dt>
     <dd>
-    Returns the number of bytes required to store an unsigned 32 bit value when written by <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a>.
+    Returns the number of bytes required to store an unsigned 32 bit value when written by <a href="../classes/BlobWriter.html#vu32">vu32</a>.
 
 
     <h3>Parameters:</h3>
@@ -1026,7 +1030,7 @@
     <ol>
 
            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
-        The number of bytes required by <a href="../classes/BlobWriter.html#vu32">BlobWriter:vu32</a> to store <code>value</code>
+        The number of bytes required by <a href="../classes/BlobWriter.html#vu32">vu32</a> to store <code>value</code>
     </ol>
 
 
@@ -1038,7 +1042,7 @@
     <strong>vs32size (value)</strong>
     </dt>
     <dd>
-    Returns the number of bytes required to store a signed 32 bit value when written by <a href="../classes/BlobWriter.html#vs32">BlobWriter:vs32</a>.
+    Returns the number of bytes required to store a signed 32 bit value when written by <a href="../classes/BlobWriter.html#vs32">vs32</a>.
 
 
     <h3>Parameters:</h3>
@@ -1053,7 +1057,7 @@
     <ol>
 
            <span class="types"><a class="type" href="../classes/BlobWriter.html#number">number</a></span>
-        The number of bytes required by <a href="../classes/BlobWriter.html#vs32">BlobWriter:vs32</a> to store <code>value</code>
+        The number of bytes required by <a href="../classes/BlobWriter.html#vs32">vs32</a> to store <code>value</code>
     </ol>
 
 
@@ -1067,7 +1071,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-11-05 09:36:45 </i>
+<i style="float:right;">Last updated 2018-11-05 11:34:44 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
