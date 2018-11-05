@@ -4,7 +4,60 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 ## How to use
 
-### Reading data
+### Lua example
+
+#### Reading data
+
+	BlobReader = require('BlobReader')
+
+	-- Load data from file
+	file = io.open('filename.ext', 'rb')
+	blob = BlobReader(file:read('*all'))
+	file:close!
+
+	-- Parse binary data
+	u8 = blob:u8()
+	s16 = blob:s16()
+	str = blob:cstring()
+	float = blob:f32()
+	...
+
+	-- Read Lua types
+	tbl = blob:table()
+	bool = blob:bool() -- 8 bits, 0 == false
+	num = blob:number()
+	str = blob:string()
+
+#### Writing data
+
+	BlobWriter = require('BlobWriter')
+
+	blob = BlobWriter()
+
+	-- Store binary data
+	blob
+		:u8(23)
+		:number(123.45)
+		:f32(23.0)
+		:string('string')
+		...
+
+	-- Store Lua types
+	blob
+		:write({ key: 'value', tbl: { 1, 2, 3 } }) -- no cycles allowed!
+		:write(23)
+		:write(true)
+		:write('string')
+
+	-- Write data to file
+	file = io.open('filename.ext', 'wb')
+	file:write(blob:tostring())
+	file:close()
+
+
+### moonscript example
+
+#### Reading data
 
 	BlobReader = require('BlobReader')
 
@@ -15,7 +68,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 	-- Parse binary data
 	u8 = blob\u8!
-	s16 = blob\s8!
+	s16 = blob\s16!
 	str = blob\cstring!
 	float = blob\f32!
 	...
@@ -26,7 +79,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 	num = blob\number!
 	str = blob\string!
 
-### Writing data
+#### Writing data
 
 	BlobWriter = require('BlobWriter')
 
@@ -38,7 +91,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 		\u8(23)
 		\number(123.45)
 		\f32(23.0)
-		\cstring('string')
+		\string('string')
 		...
 
 	-- Store Lua types
@@ -50,7 +103,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 	-- Write data to file
 	file = io.open('filename.ext', 'wb')
-	file\write(blob:tostring!)
+	file\write(blob\tostring!)
 	file\close!
 
 ## Documentation
@@ -67,7 +120,7 @@ A low level interface is provided for handling arbitrary binary data.
 	Blob*\s16  / Blob*\u16   -- signed/unsigned 16 bit integer value
 	Blob*\s32  / Blob*\u32   -- signed/unsigned 32 bit integer value
 	Blob*\s64  / Blob*\u64   -- signed/unsigned 64 bit integer value
-	Blob*\vs32 / Blob*\vu32  -- length-optimized 32 bit value
+	Blob*\vs32 / Blob*\vu32  -- length-encoded signed/unsigned 32 bit value
 	Blob*\f32                -- 32 bit floating point value
 	Blob*\f64 / Blob*\number -- Lua number (64 bit floating point)
 	Blob*\bool               -- boolean value (8 bits; 0 == false)
@@ -77,7 +130,7 @@ A low level interface is provided for handling arbitrary binary data.
 	Blob*\cstring            -- zero-terminated string
 	Blob*\array              -- sequential table of typed values
 
-To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader:unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API documentation](https://megagrump.github.io/moonblob/doc) for details.
+To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader\unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API documentation](https://megagrump.github.io/moonblob/doc) for details.
 
 Raw I/O does not store type information and does not perform any kind of type checking, except for strings (length is being stored) and tables (field type information is being stored). Tables are limited to the basic Lua types `number`, `string`, `boolean` and `table`.
 

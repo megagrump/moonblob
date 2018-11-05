@@ -1,5 +1,5 @@
 local ffi = require('ffi')
-local band, bnot, shr = bit.band, bit.bnot, bit.rshift
+local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 local _native, _byteOrder, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 local BlobWriter
@@ -100,7 +100,7 @@ do
       return self:_writeTable(t, { })
     end,
     vu32 = function(self, value)
-      assert(value < 2 ^ 32, "Exceeded u32 value range")
+      assert(value < 2 ^ 32, "Exceeded u32 value limits")
       for i = 7, 28, 7 do
         local mask, shift = 2 ^ i - 1, i - 7
         if value < 2 ^ i then
@@ -111,9 +111,21 @@ do
       return self:u8(shr(band(value, 0xf0000000), 28))
     end,
     vs32 = function(self, value)
-      assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value range")
-      _native.s32[0] = value
-      return self:vu32(_native.u32[0])
+      assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+      local signBit
+      signBit, value = value < 0 and 1 or 0, math.abs(value)
+      if value < 2 ^ 6 then
+        return self:u8(shl(band(value, 0x3f), 1) + signBit)
+      end
+      self:u8(shl(band(value, 0x3f), 1) + signBit + 0x80)
+      for i = 13, 27, 7 do
+        local mask, shift = 2 ^ i - 1, i - 7
+        if value < 2 ^ i then
+          return self:u8(shr(band(value, mask), shift))
+        end
+        self:u8(shr(band(value, mask), shift) + 0x80)
+      end
+      return self:u8(shr(band(value, 0xf8000000), 27))
     end,
     array = function(self, valueType, array)
       local writer = _arrayTypeMap[valueType]
@@ -176,6 +188,7 @@ do
       return self._size
     end,
     vu32size = function(self, value)
+      assert(value < 2 ^ 32, "Exceeded u32 value limits")
       if value < 2 ^ 7 then
         return 1
       end
@@ -191,7 +204,7 @@ do
       return 5
     end,
     vs32size = function(self, value)
-      _native.s32[0] = value
+      _native.s32[0] = math.abs(value) + 1
       return self:vu32size(_native.u32[0])
     end,
     _allocate = function(self, size)

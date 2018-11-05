@@ -1,6 +1,6 @@
 -- @class BlobWriter
 ffi = require('ffi')
-band, bnot, shr = bit.band, bit.bnot, bit.rshift
+band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 
 local _native, _byteOrder, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
@@ -188,7 +188,7 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	table: (t) => @_writeTable(t, {})
 
-	--- Writes an unsigned 32 bit integer value with varying length.
+	--- Writes a length-encoded unsigned 32 bit integer value.
 	--
 	-- The value is written in an encoded format. The length depends on the value; larger values need more space.
 	--
@@ -204,7 +204,7 @@ class BlobWriter
 	-- @see BlobWriter:vu32size
 	-- @treturn BlobWriter self
 	vu32: (value) =>
-		assert(value < 2 ^ 32, "Exceeded u32 value range")
+		assert(value < 2 ^ 32, "Exceeded u32 value limits")
 
 		for i = 7, 28, 7
 			mask, shift = 2 ^ i - 1, i - 7
@@ -212,15 +212,33 @@ class BlobWriter
 			@u8(shr(band(value, mask), shift) + 0x80)
 		@u8(shr(band(value, 0xf0000000), 28))
 
-	--- Writes a signed 32 bit integer value with varying length.
+	--- Writes a length-encoded signed 32 bit integer.
+	--
+	-- The value is written in an encoded format. The length depends on the value; larger values need more space.
+	--
+	-- Space requirements:
+	--
+	-- * `abs(value) < 127`: 1 byte
+	-- * `abs(value) < 16383`: 2 bytes
+	-- * `abs(value) < 2097151`: 3 bytes
+	-- * `abs(value) < 268435455`: 4 bytes
+	-- * `abs(value) >= 268435455`: 5 bytes
 	--
 	-- @tparam number value The signed integer value to write to the output buffer
 	-- @see BlobWriter:vu32
 	-- @treturn BlobWriter self
 	vs32: (value) =>
-		assert(value < 2 ^ 31 and value >= -2^31, "Exceeded s32 value range")
-		_native.s32[0] = value
-		@vu32(_native.u32[0])
+		assert(value < 2 ^ 31 and value >= -2^31, "Exceeded s32 value limits")
+
+		signBit, value = value < 0 and 1 or 0, math.abs(value)
+		return @u8(shl(band(value, 0x3f), 1) + signBit) if value < 2 ^ 6
+		@u8(shl(band(value, 0x3f), 1) + signBit + 0x80)
+
+		for i = 13, 27, 7
+			mask, shift = 2 ^ i - 1, i - 7
+			return @u8(shr(band(value, mask), shift)) if value < 2 ^ i
+			@u8(shr(band(value, mask), shift) + 0x80)
+		@u8(shr(band(value, 0xf8000000), 27))
 
 	--- Writes a sequential table of values. All values must be of the same type.
 	--
@@ -337,6 +355,7 @@ class BlobWriter
 	-- @tparam number value The unsigned 32 bit value to write
 	-- @treturn number The number of bytes required by `BlobWriter:vu32` to store `value`
 	vu32size: (value) =>
+		assert(value < 2 ^ 32, "Exceeded u32 value limits")
 		return 1 if value < 2 ^ 7
 		return 2 if value < 2 ^ 14
 		return 3 if value < 2 ^ 21
@@ -348,7 +367,7 @@ class BlobWriter
 	-- @tparam number value The signed 32 bit value to write
 	-- @treturn number The number of bytes required by `BlobWriter:vs32` to store `value`
 	vs32size: (value) =>
-		_native.s32[0] = value
+		_native.s32[0] = math.abs(value) + 1
 		@vu32size(_native.u32[0])
 
 	------------------------------------------------------------------------------------------------------

@@ -335,6 +335,7 @@ test_VarU32 = ->
 		\vu32(2 ^ 11)
 		\vu32(2 ^ 27)
 		\vu32(2 ^ 31)
+		\vu32(2 ^ 32 - 1)
 	lu.assertErrorMsgContains('Exceeded', blob.vu32, blob, 2 ^ 33)
 
 	blob = BlobReader(blob\tostring!)
@@ -343,6 +344,52 @@ test_VarU32 = ->
 	lu.assertEquals(blob\vu32!, 2 ^ 11)
 	lu.assertEquals(blob\vu32!, 2 ^ 27)
 	lu.assertEquals(blob\vu32!, 2 ^ 31)
+	lu.assertEquals(blob\vu32!, 2 ^ 32 - 1)
+
+test_VarS32 = ->
+	blob = BlobWriter!
+	lu.assertEquals(blob\vs32size(0), 1)
+	lu.assertEquals(blob\vs32size(2 ^ 7 - 2), 1)
+	lu.assertEquals(blob\vs32size(-2 ^ 7 + 2), 1)
+	lu.assertEquals(blob\vs32size(2 ^ 7 - 1), 2)
+	lu.assertEquals(blob\vs32size(-2 ^ 7 + 1), 2)
+	lu.assertEquals(blob\vs32size(2 ^ 14 - 2), 2)
+	lu.assertEquals(blob\vs32size(-2 ^ 14 + 2), 2)
+	lu.assertEquals(blob\vs32size(2 ^ 14 - 1), 3)
+	lu.assertEquals(blob\vs32size(-2 ^ 14 + 1), 3)
+	lu.assertEquals(blob\vs32size(2 ^ 21 - 2), 3)
+	lu.assertEquals(blob\vs32size(-2 ^ 21 + 2), 3)
+	lu.assertEquals(blob\vs32size(2 ^ 21 - 1), 4)
+	lu.assertEquals(blob\vs32size(-2 ^ 21 + 1), 4)
+	lu.assertEquals(blob\vs32size(2 ^ 28 - 2), 4)
+	lu.assertEquals(blob\vs32size(-2 ^ 28 + 2), 4)
+	lu.assertEquals(blob\vs32size(2 ^ 28 - 1), 5)
+	lu.assertEquals(blob\vs32size(-2 ^ 28 + 1), 5)
+	lu.assertEquals(blob\vs32size(2 ^ 31 - 1), 5)
+	lu.assertEquals(blob\vs32size(-2 ^ 31 + 1), 5)
+
+	with blob
+		\vs32(0)
+		\vs32(2 ^ 7)
+		\vs32(2 ^ 11)
+		\vs32(2 ^ 27)
+		\vs32(2 ^ 31 - 1)
+		\vs32(-2 ^ 7)
+		\vs32(-2 ^ 11 + 1)
+		\vs32(-2 ^ 27 + 1)
+		\vs32(-2 ^ 31)
+	lu.assertErrorMsgContains('Exceeded', blob.vs32, blob, 2 ^ 31)
+
+	blob = BlobReader(blob\tostring!)
+	lu.assertEquals(blob\vs32!, 0)
+	lu.assertEquals(blob\vs32!, 2 ^ 7)
+	lu.assertEquals(blob\vs32!, 2 ^ 11)
+	lu.assertEquals(blob\vs32!, 2 ^ 27)
+	lu.assertEquals(blob\vs32!, 2 ^ 31 - 1)
+	lu.assertEquals(blob\vs32!, -2 ^ 7)
+	lu.assertEquals(blob\vs32!, -2 ^ 11 + 1)
+	lu.assertEquals(blob\vs32!, -2 ^ 27 + 1)
+	lu.assertEquals(blob\vs32!, -2 ^ 31)
 
 test_Reader_ByteOrder = ->
 	posNum = 2^33 + 1234567.89
@@ -409,13 +456,13 @@ test_Writer_array = ->
 
 	size1 = { 's8', 'u8', 'vs32', 'vu32' }
 	for i = 1, #size1
-		_testTypeSize(size1[i], { 23, 42, 127 }, 1)
+		_testTypeSize(size1[i], { 23, 42, 63 }, 1)
 	size2 = { 's16', 'u16', 'vs32', 'vu32' }
 	for i = 1, #size2
 		_testTypeSize(size2[i], { 6623, 6642, 6127 }, 2)
 	size4 = { 's32', 'u32', 'f32', 'vs32', 'vu32' }
 	for i = 1, #size4
-		_testTypeSize(size4[i], { 123456623, 32145664, 5456127 }, 4)
+		_testTypeSize(size4[i], { 123456623, 3214564, 5456127 }, 4)
 	size8 = { 's64', 'u64', 'f64', 'number' }
 	for i = 1, #size8
 		_testTypeSize(size8[i], { 0x123456789ab, 0xcf012312345, -1, -438 }, 8)

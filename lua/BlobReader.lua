@@ -1,5 +1,5 @@
 local ffi = require('ffi')
-local band = bit.band
+local band, shr = bit.band, bit.rshift
 local _native, _endian, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 local BlobReader
@@ -105,8 +105,25 @@ do
       return band(result, 0x0fffffff) + self:u8() * 2 ^ 28
     end,
     vs32 = function(self)
-      _native.u32[0] = self:vu32()
-      return _native.s32[0]
+      local result = self:u8()
+      local sign
+      sign, result = band(result, 1) == 0 and 1 or -1, shr(result, 1)
+      if band(result, 0x00000040) == 0 then
+        return result * sign
+      end
+      result = band(result, 0x0000003f) + self:u8() * 2 ^ 6
+      if band(result, 0x00002000) == 0 then
+        return result * sign
+      end
+      result = band(result, 0x00001fff) + self:u8() * 2 ^ 13
+      if band(result, 0x00100000) == 0 then
+        return result * sign
+      end
+      result = band(result, 0x000fffff) + self:u8() * 2 ^ 20
+      if band(result, 0x08000000) == 0 then
+        return result * sign
+      end
+      return sign * (band(result, 0x07ffffff) + self:u8() * 2 ^ 27)
     end,
     raw = function(self, len)
       local ptr = self._readPtr

@@ -1,6 +1,6 @@
 -- @class BlobReader
 ffi = require('ffi')
-band = bit.band
+band, shr = bit.band, bit.rshift
 
 local _native, _endian, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
@@ -171,7 +171,7 @@ class BlobReader
 	-- @treturn number The 64-bit floating point value read from the input data
 	f64: => @number!
 
-	--- Reads a variable length unsigned 32 bit integer value from the input data.
+	--- Reads a length-encoded unsigned 32 bit integer value from the input data.
 	--
 	-- See `BlobWriter:vu32` for more details about this data type.
 	-- @treturn number The unsigned 32-bit integer value read from the input data
@@ -187,14 +187,22 @@ class BlobReader
 		return result if band(result, 0x10000000) == 0
 		band(result, 0x0fffffff) + @u8! * 2 ^ 28
 
-	--- Reads a variable length signed 32 bit integer value from the input data.
+	--- Reads a length-encoded signed 32 bit integer value from the input data.
 	--
-	-- See `BlobWriter:vu32` for more details about this data type.
+	-- See `BlobWriter:vs32` for more details about this data type.
 	-- @treturn number The signed 32-bit integer value read from the input data
 	-- @see BlobWriter:vs32
 	vs32: =>
-		_native.u32[0] = @vu32!
-		_native.s32[0]
+		result = @u8!
+		sign, result = band(result, 1) == 0 and 1 or -1, shr(result, 1)
+		return result * sign if band(result, 0x00000040) == 0
+		result = band(result, 0x0000003f) + @u8! * 2 ^ 6
+		return result * sign if band(result, 0x00002000) == 0
+		result = band(result, 0x00001fff) + @u8! * 2 ^ 13
+		return result * sign if band(result, 0x00100000) == 0
+		result = band(result, 0x000fffff) + @u8! * 2 ^ 20
+		return result * sign if band(result, 0x08000000) == 0
+		sign * (band(result, 0x07ffffff) + @u8! * 2 ^ 27)
 
 	--- Reads raw binary data from the input data.
 	--
