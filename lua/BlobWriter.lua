@@ -359,7 +359,7 @@ do
     n = BlobWriter.number,
     c = BlobWriter.raw,
     s = BlobWriter.string,
-    z = BlobWriter.cString,
+    z = BlobWriter.cstring,
     t = BlobWriter.table,
     y = BlobWriter.bool,
     ['<'] = function(self)

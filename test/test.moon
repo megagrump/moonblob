@@ -203,14 +203,15 @@ test_LargeString = ->
 	equals(BlobReader(b4\tostring!)\string!, longstr)
 
 test_pack_unpack = ->
-	w = BlobWriter!\pack('<BHB>L=QvV', 255, 65535, 0, 2 ^ 32 - 1, 9876543210123ULL, -2 ^ 31, 2 ^ 31)
-	B, H, L, Q, v, V = BlobReader(w\tostring!)\unpack('<BHx>L=QvV')
+	w = BlobWriter!\pack('<BHB>L=QvVz', 255, 65535, 0, 2 ^ 32 - 1, 9876543210123ULL, -2 ^ 31, 2 ^ 31, 'cstring')
+	B, H, L, Q, v, V, z = BlobReader(w\tostring!)\unpack('<BHx>L=QvVz')
 	equals(B, 255)
 	equals(H, 65535)
 	equals(L, 2 ^ 32 - 1)
 	equals(Q, 9876543210123ULL)
 	equals(v, -2 ^ 31)
 	equals(V, 2 ^ 31)
+	equals(z, 'cstring')
 
 test_unpack_skipMultiple = ->
 	w = BlobWriter!\s64(123456789)\s32(42)

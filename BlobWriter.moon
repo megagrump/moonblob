@@ -503,7 +503,7 @@ with BlobWriter
 		n: .number
 		c: .raw
 		s: .string
-		z: .cString
+		z: .cstring
 		t: .table
 		y: .bool
 		['<']: => nil, @setByteOrder('<')
