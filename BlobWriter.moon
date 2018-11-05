@@ -38,81 +38,80 @@ class BlobWriter
 	--- Writes a value to the output buffer. Determines the type of the value automatically.
 	--
 	-- Supported value types are `number`, `string`, `boolean` and `table`.
-	-- @param value the value to write to the output buffer
+	-- @param value the value to write
 	-- @treturn BlobWriter self
 	write: (value) => @_writeTagged(value)
 
 	--- Writes a Lua number to the output buffer.
 	--
-	-- @tparam number number The number to write to the output buffer
+	-- @tparam number value The number to write
 	-- @treturn BlobWriter self
-	number: (number) =>
-		_native.n = number
+	number: (value) =>
+		_native.n = value
 		@u32(_native.u32[0])\u32(_native.u32[1])
 
 	--- Writes a boolean value to the output buffer.
 	--
 	-- The value is written as an unsigned 8 bit value (`true = 1`, `false = 0`)
-	-- @tparam bool bool The boolean value to write to the output buffer
+	-- @tparam bool value The boolean value to write
 	--
 	-- @treturn BlobWriter self
-	bool: (bool) => @u8(bool and 1 or 0)
+	bool: (value) => @u8(value and 1 or 0)
 
 	--- Writes a string to the output buffer.
 	--
 	-- Stores the length of the string as a `vu32` field before the actual string data.
-	-- @tparam string str The string to write to the output buffer
+	-- @tparam string value The string to write
 	-- @treturn BlobWriter self
-	string: (str) =>
-		length = #str
-		@vu32(length)\raw(str, length)
+	string: (value) =>
+		length = #value
+		@vu32(length)\raw(value, length)
 
 	--- Writes an unsigned 8 bit value to the output buffer.
 	--
-	-- @tparam number u8 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	u8: (u8) =>
+	u8: (value) =>
 		@_grow(1) if @_length + 1 > @_size
-		@_data[@_length] = u8
+		@_data[@_length] = value
 		@_length += 1
 		@
 
 	--- Writes a signed 8 bit value to the output buffer.
 	--
-	-- @tparam number s8 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	s8: (s8) =>
-		_native.s8[0] = s8
+	s8: (value) =>
+		_native.s8[0] = value
 		@u8(_native.u8[0])
 
 	--- Writes an unsigned 16 bit value to the output buffer.
 	--
-	-- @tparam number u16 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	u16: (u16) =>
+	u16: (value) =>
 		len = @_length
 		@_grow(2) if len + 2 > @_size
-		b1, b2 = @_orderBytes(band(u16, 2 ^ 8 - 1), shr(u16, 8))
-		@_data[len], @_data[len + 1] = b1, b2
+		@_data[len], @_data[len + 1] = @_orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
 		@_length += 2
 		@
 
 	--- Writes a signed 16 bit value to the output buffer.
 	--
-	-- @tparam number s16 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	s16: (s16) =>
-		_native.s16[0] = s16
+	s16: (value) =>
+		_native.s16[0] = value
 		@u16(_native.u16[0])
 
 	--- Writes an unsigned 32 bit value to the output buffer.
 	--
-	-- @tparam number u32 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	u32: (u32) =>
+	u32: (value) =>
 		len = @_length
 		@_grow(4) if len + 4 > @_size
-		w1, w2 = @_orderBytes(band(u32, 2 ^ 16 - 1), shr(u32, 16))
+		w1, w2 = @_orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
 		b1, b2 = @_orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
 		b3, b4 = @_orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
 		@_data[len], @_data[len + 1], @_data[len + 2], @_data[len + 3] = b1, b2, b3, b4
@@ -121,72 +120,11 @@ class BlobWriter
 
 	--- Writes a signed 32 bit value to the output buffer.
 	--
-	-- @tparam number s32 The value to write to the output buffer
+	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
-	s32: (s32) =>
-		_native.s32[0] = s32
+	s32: (value) =>
+		_native.s32[0] = value
 		@u32(_native.u32[0])
-
-	--- Writes an unsigned 64 bit value to the output buffer.
-	--
-	-- Lua numbers are only accurate for values < 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
-	-- @usage writer\u64(72057594037927936ULL)
-	-- @tparam number u64 The value to write to the output buffer
-	-- @treturn BlobWriter self
-	u64: (u64) =>
-		_native.u64 = u64
-		a, b = @_orderBytes(_native.u32[0], _native.u32[1])
-		@u32(a)\u32(b)
-
-	--- Writes a signed 64 bit value to the output buffer.
-	--
-	-- @see BlobWriter:u64
-	-- @tparam number s64 The value to write to the output buffer
-	-- @treturn BlobWriter self
-	s64: (s64) =>
-		_native.s64 = s64
-		a, b = @_orderBytes(_native.u32[0], _native.u32[1])
-		@u32(a)\u32(b)
-
-	--- Writes a 32 bit floating point value to the output buffer.
-	--
-	-- @tparam number f32 The value to write to the output buffer
-	-- @treturn BlobWriter self
-	f32: (f32) =>
-		_native.f[0] = f32
-		@u32(_native.u32[0])
-
-	--- Writes a 64 bit floating point value to the output buffer.
-	---
-	-- @tparam number f64 The value to write to the output buffer
-	-- @treturn BlobWriter self
-	f64: (f64) => @number(f64)
-
-	--- Writes raw binary data to the output buffer.
-	--
-	-- @tparam string|cdata raw A `string` or `cdata` with the data to write to the output buffer
-	-- @tparam[opt] number length Length of data (not required when data is a string)
-	-- @treturn BlobWriter self
-	raw: (raw, length) =>
-		length = length or #raw
-		makeRoom = (@_size - @_length) - length
-		@_grow(math.abs(makeRoom)) if makeRoom < 0
-		ffi.copy(ffi.cast('char*', @_data + @_length), raw, length)
-		@_length += length
-		@
-
-	--- Writes a string to the output buffer, followed by a null byte.
-	--
-	-- @tparam string str The string to write to the output buffer
-	-- @treturn BlobWriter self
-	cstring: (str) => @raw(str)\u8(0)
-
-	--- Writes a table to the output buffer.
-	--
-	-- Supported field types are number, string, bool and table. Cyclic references throw an error.
-	-- @tparam table t The table to write to the output buffer
-	-- @treturn BlobWriter self
-	table: (t) => @_writeTable(t, {})
 
 	--- Writes a length-encoded unsigned 32 bit integer value.
 	--
@@ -200,7 +138,7 @@ class BlobWriter
 	-- * `value < 268435456`: 4 bytes
 	-- * `value >= 268435456`: 5 bytes
 	--
-	-- @tparam number value The unsigned integer value to write to the output buffer
+	-- @tparam number value The unsigned integer value to write
 	-- @see BlobWriter:vu32size
 	-- @treturn BlobWriter self
 	vu32: (value) =>
@@ -224,7 +162,7 @@ class BlobWriter
 	-- * `abs(value) < 268435455`: 4 bytes
 	-- * `abs(value) >= 268435455`: 5 bytes
 	--
-	-- @tparam number value The signed integer value to write to the output buffer
+	-- @tparam number value The signed integer value to write
 	-- @see BlobWriter:vu32
 	-- @treturn BlobWriter self
 	vs32: (value) =>
@@ -239,6 +177,67 @@ class BlobWriter
 			return @u8(shr(band(value, mask), shift)) if value < 2 ^ i
 			@u8(shr(band(value, mask), shift) + 0x80)
 		@u8(shr(band(value, 0xf8000000), 27))
+
+	--- Writes an unsigned 64 bit value to the output buffer.
+	--
+	-- Lua numbers are only accurate for values < 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
+	-- @usage writer\u64(72057594037927936ULL)
+	-- @tparam number value The value to write
+	-- @treturn BlobWriter self
+	u64: (value) =>
+		_native.u64 = value
+		a, b = @_orderBytes(_native.u32[0], _native.u32[1])
+		@u32(a)\u32(b)
+
+	--- Writes a signed 64 bit value to the output buffer.
+	--
+	-- @see BlobWriter:u64
+	-- @tparam number s64 The value to write
+	-- @treturn BlobWriter self
+	s64: (value) =>
+		_native.s64 = value
+		a, b = @_orderBytes(_native.u32[0], _native.u32[1])
+		@u32(a)\u32(b)
+
+	--- Writes a 32 bit floating point value to the output buffer.
+	--
+	-- @tparam number value The value to write
+	-- @treturn BlobWriter self
+	f32: (value) =>
+		_native.f[0] = value
+		@u32(_native.u32[0])
+
+	--- Writes a 64 bit floating point value to the output buffer.
+	---
+	-- @tparam number value The value to write
+	-- @treturn BlobWriter self
+	f64: (value) => @number(value)
+
+	--- Writes raw binary data to the output buffer.
+	--
+	-- @tparam string|cdata value A `string` or `cdata` with the data to write
+	-- @tparam[opt] number length Length of data (not required when data is a string)
+	-- @treturn BlobWriter self
+	raw: (value, length) =>
+		length = length or #value
+		makeRoom = (@_size - @_length) - length
+		@_grow(math.abs(makeRoom)) if makeRoom < 0
+		ffi.copy(ffi.cast('uint8_t*', @_data + @_length), value, length)
+		@_length += length
+		@
+
+	--- Writes a string to the output buffer, followed by a null byte.
+	--
+	-- @tparam string value The string to write
+	-- @treturn BlobWriter self
+	cstring: (value) => @raw(value)\u8(0)
+
+	--- Writes a table to the output buffer.
+	--
+	-- Supported field types are number, string, bool and table. Cyclic references throw an error.
+	-- @tparam table value The table to write
+	-- @treturn BlobWriter self
+	table: (value) => @_writeTable(value, {})
 
 	--- Writes a sequential table of values. All values must be of the same type.
 	--
@@ -255,14 +254,14 @@ class BlobWriter
 	-- Behavior is undefined for table keys that are not sequential, or not starting at index 1.
 	--
 	-- @treturn BlobWriter self
-	array: (valueType, array) =>
+	array: (valueType, value) =>
 		writer = _arrayTypeMap[valueType]
 		assert(writer, writer or "Invalid array type <#{valueType}>")
-		@vu32(#array)
-		writer(@, v) for v in *array
+		@vu32(#value)
+		writer(@, v) for v in *value
 		@
 
-	--- Writes data to the output buffer according to a format string.
+	--- Writes data according to a format string.
 	--
 	-- @tparam string format Data format descriptor string.
 	-- The format string syntax is loosely based on the format that Lua 5.3's

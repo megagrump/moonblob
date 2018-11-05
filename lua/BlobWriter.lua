@@ -13,91 +13,57 @@ do
     write = function(self, value)
       return self:_writeTagged(value)
     end,
-    number = function(self, number)
-      _native.n = number
+    number = function(self, value)
+      _native.n = value
       return self:u32(_native.u32[0]):u32(_native.u32[1])
     end,
-    bool = function(self, bool)
-      return self:u8(bool and 1 or 0)
+    bool = function(self, value)
+      return self:u8(value and 1 or 0)
     end,
-    string = function(self, str)
-      local length = #str
-      return self:vu32(length):raw(str, length)
+    string = function(self, value)
+      local length = #value
+      return self:vu32(length):raw(value, length)
     end,
-    u8 = function(self, u8)
+    u8 = function(self, value)
       if self._length + 1 > self._size then
         self:_grow(1)
       end
-      self._data[self._length] = u8
+      self._data[self._length] = value
       self._length = self._length + 1
       return self
     end,
-    s8 = function(self, s8)
-      _native.s8[0] = s8
+    s8 = function(self, value)
+      _native.s8[0] = value
       return self:u8(_native.u8[0])
     end,
-    u16 = function(self, u16)
+    u16 = function(self, value)
       local len = self._length
       if len + 2 > self._size then
         self:_grow(2)
       end
-      local b1, b2 = self:_orderBytes(band(u16, 2 ^ 8 - 1), shr(u16, 8))
-      self._data[len], self._data[len + 1] = b1, b2
+      self._data[len], self._data[len + 1] = self:_orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
       self._length = self._length + 2
       return self
     end,
-    s16 = function(self, s16)
-      _native.s16[0] = s16
+    s16 = function(self, value)
+      _native.s16[0] = value
       return self:u16(_native.u16[0])
     end,
-    u32 = function(self, u32)
+    u32 = function(self, value)
       local len = self._length
       if len + 4 > self._size then
         self:_grow(4)
       end
-      local w1, w2 = self:_orderBytes(band(u32, 2 ^ 16 - 1), shr(u32, 16))
+      local w1, w2 = self:_orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
       local b1, b2 = self:_orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
       local b3, b4 = self:_orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
       self._data[len], self._data[len + 1], self._data[len + 2], self._data[len + 3] = b1, b2, b3, b4
       self._length = self._length + 4
       return self
     end,
-    s32 = function(self, s32)
-      _native.s32[0] = s32
+    s32 = function(self, value)
+      _native.s32[0] = value
       return self:u32(_native.u32[0])
-    end,
-    u64 = function(self, u64)
-      _native.u64 = u64
-      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
-      return self:u32(a):u32(b)
-    end,
-    s64 = function(self, s64)
-      _native.s64 = s64
-      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
-      return self:u32(a):u32(b)
-    end,
-    f32 = function(self, f32)
-      _native.f[0] = f32
-      return self:u32(_native.u32[0])
-    end,
-    f64 = function(self, f64)
-      return self:number(f64)
-    end,
-    raw = function(self, raw, length)
-      length = length or #raw
-      local makeRoom = (self._size - self._length) - length
-      if makeRoom < 0 then
-        self:_grow(math.abs(makeRoom))
-      end
-      ffi.copy(ffi.cast('char*', self._data + self._length), raw, length)
-      self._length = self._length + length
-      return self
-    end,
-    cstring = function(self, str)
-      return self:raw(str):u8(0)
-    end,
-    table = function(self, t)
-      return self:_writeTable(t, { })
     end,
     vu32 = function(self, value)
       assert(value < 2 ^ 32, "Exceeded u32 value limits")
@@ -127,12 +93,45 @@ do
       end
       return self:u8(shr(band(value, 0xf8000000), 27))
     end,
-    array = function(self, valueType, array)
+    u64 = function(self, value)
+      _native.u64 = value
+      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
+      return self:u32(a):u32(b)
+    end,
+    s64 = function(self, value)
+      _native.s64 = value
+      local a, b = self:_orderBytes(_native.u32[0], _native.u32[1])
+      return self:u32(a):u32(b)
+    end,
+    f32 = function(self, value)
+      _native.f[0] = value
+      return self:u32(_native.u32[0])
+    end,
+    f64 = function(self, value)
+      return self:number(value)
+    end,
+    raw = function(self, value, length)
+      length = length or #value
+      local makeRoom = (self._size - self._length) - length
+      if makeRoom < 0 then
+        self:_grow(math.abs(makeRoom))
+      end
+      ffi.copy(ffi.cast('uint8_t*', self._data + self._length), value, length)
+      self._length = self._length + length
+      return self
+    end,
+    cstring = function(self, value)
+      return self:raw(value):u8(0)
+    end,
+    table = function(self, value)
+      return self:_writeTable(value, { })
+    end,
+    array = function(self, valueType, value)
       local writer = _arrayTypeMap[valueType]
       assert(writer, writer or "Invalid array type <" .. tostring(valueType) .. ">")
-      self:vu32(#array)
-      for _index_0 = 1, #array do
-        local v = array[_index_0]
+      self:vu32(#value)
+      for _index_0 = 1, #value do
+        local v = value[_index_0]
         writer(self, v)
       end
       return self
