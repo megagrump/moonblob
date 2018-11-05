@@ -46,7 +46,7 @@ class BlobReader
 
 	--- Reads a `string`, a `number`, a `boolean` or a `table` from the input data.
 	--
-	-- The data must have been written by `BlobWriter:write`.
+	-- The data must have been written by @{BlobWriter:write}.
 	-- The type of the value is automatically detected from the input metadata.
 	-- @treturn string|number|bool|table The value read from the input data
 	-- @see BlobWriter:write
@@ -63,7 +63,7 @@ class BlobReader
 
 	--- Reads a string from the input data.
 	--
-	-- The string must have been written by `BlobWriter:write` or `BlobWriter:string`
+	-- The string must have been written by @{BlobWriter:write} or @{BlobWriter:string}
 	-- @treturn string The string read from the input data
 	-- @see BlobWriter:write
 	-- @see BlobWriter:string
@@ -81,7 +81,7 @@ class BlobReader
 
 	--- Reads a Lua table from the input data.
 	--
-	-- The table must have been written by BlobWriter.write or BlobWriter.table.
+	-- The table must have been written by @{BlobWriter.write} or @{BlobWriter.table}.
 	--
 	-- @tparam[opt] table result Table to put values in
 	-- @treturn table The table read from the input data
@@ -173,7 +173,7 @@ class BlobReader
 
 	--- Reads a length-encoded unsigned 32 bit integer value from the input data.
 	--
-	-- See `BlobWriter:vu32` for more details about this data type.
+	-- See @{BlobWriter:vu32} for more details about this data type.
 	-- @treturn number The unsigned 32-bit integer value read from the input data
 	-- @see BlobWriter:vu32
 	vu32: =>
@@ -189,7 +189,7 @@ class BlobReader
 
 	--- Reads a length-encoded signed 32 bit integer value from the input data.
 	--
-	-- See `BlobWriter:vs32` for more details about this data type.
+	-- See @{BlobWriter:vs32} for more details about this data type.
 	-- @treturn number The signed 32-bit integer value read from the input data
 	-- @see BlobWriter:vs32
 	vs32: =>
@@ -238,7 +238,7 @@ class BlobReader
 
 	--- Reads a sequential table of typed values.
 	--
-	-- Expects preceding `vu32` encoded array length information, as written by `BlobWriter:array`.
+	-- Expects preceding `vu32` encoded array length information, as written by @{BlobWriter:array}.
 	--
 	-- @tparam string valueType Type of the values in the array
 	--
@@ -259,7 +259,7 @@ class BlobReader
 	--
 	-- @tparam string format Data format specification
 	--
-	-- See `BlobWriter:pack` for a list of supported identifiers.
+	-- See @{BlobWriter:pack} for a list of supported identifiers.
 	--
 	-- Additional format specifiers for unpack:
 	--
