@@ -66,7 +66,9 @@ do
       return self:u32(_native.u32[0])
     end,
     vu32 = function(self, value)
-      assert(value < 2 ^ 32, "Exceeded u32 value limits")
+      if not (value < 2 ^ 32) then
+        error("Exceeded u32 value limits")
+      end
       for i = 7, 28, 7 do
         local mask, shift = 2 ^ i - 1, i - 7
         if value < 2 ^ i then
@@ -77,7 +79,9 @@ do
       return self:u8(shr(band(value, 0xf0000000), 28))
     end,
     vs32 = function(self, value)
-      assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+      if not (value < 2 ^ 31 and value >= -2 ^ 31) then
+        error("Exceeded s32 value limits")
+      end
       local signBit
       signBit, value = value < 0 and 1 or 0, math.abs(value)
       if value < 2 ^ 6 then
@@ -128,7 +132,9 @@ do
     end,
     array = function(self, valueType, value)
       local writer = _arrayTypeMap[valueType]
-      assert(writer, writer or "Invalid array type <" .. tostring(valueType) .. ">")
+      if not (writer) then
+        error("Invalid array type <" .. tostring(valueType) .. ">")
+      end
       self:vu32(#value)
       for _index_0 = 1, #value do
         local v = value[_index_0]
@@ -137,7 +143,6 @@ do
       return self
     end,
     pack = function(self, format, ...)
-      assert(type(format) == 'string', "Invalid format specifier")
       local data, index, len = {
         ...
       }, 1, nil
@@ -145,8 +150,12 @@ do
       local _writeRaw
       _writeRaw = function()
         local l = tonumber(table.concat(len))
-        assert(l, l or "Invalid string length specification: " .. tostring(table.concat(len)))
-        assert(l < 2 ^ 32, "Maximum string length exceeded")
+        if not (l) then
+          error("Invalid string length specification: " .. tostring(table.concat(len)))
+        end
+        if not (l < 2 ^ 32) then
+          error("Maximum string length exceeded")
+        end
         self:raw(data[index], l)
         index, len = index + 1, nil
       end
@@ -155,17 +164,23 @@ do
           if tonumber(c) then
             table.insert(len, c)
           else
-            assert(index <= limit, "Number of arguments to pack does not match format specifiers")
+            if not (index <= limit) then
+              error("Number of arguments to pack does not match format specifiers")
+            end
             _writeRaw()
           end
         end
         if not (len) then
           local writer = _packMap[c]
-          assert(writer, writer or "Invalid data type specifier: " .. tostring(c))
+          if not (writer) then
+            error("Invalid data type specifier: " .. tostring(c))
+          end
           if c == 'c' then
             len = { }
           else
-            assert(index <= limit, "Number of arguments to pack does not match format specifiers")
+            if not (index <= limit) then
+              error("Number of arguments to pack does not match format specifiers")
+            end
             if writer(self, data[index]) then
               index = index + 1
             end
@@ -195,7 +210,9 @@ do
       return self._size
     end,
     vu32size = function(self, value)
-      assert(value < 2 ^ 32, "Exceeded u32 value limits")
+      if not (value < 2 ^ 32) then
+        error("Exceeded u32 value limits")
+      end
       if value < 2 ^ 7 then
         return 1
       end
@@ -211,7 +228,9 @@ do
       return 5
     end,
     vs32size = function(self, value)
-      assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+      if not (value < 2 ^ 31 and value >= -2 ^ 31) then
+        error("Exceeded s32 value limits")
+      end
       value = math.abs(value) + 1
       if value < 2 ^ 7 then
         return 1
@@ -244,10 +263,11 @@ do
       return self:_allocate(newSize)
     end,
     _writeTable = function(self, t, stack)
-      stack = stack or { }
-      local ttype = type(t)
-      assert(ttype == 'table', ttype == 'table' or "Invalid type '" .. tostring(ttype) .. "' for BlobWriter:table")
-      assert(not stack[t], "Cycle detected; can't serialize table")
+      local ttype
+      stack, ttype = stack or { }, type(t)
+      if stack[t] then
+        error("Cycle detected; can't serialize table")
+      end
       stack[t] = true
       for key, value in pairs(t) do
         self:_writeTagged(key, stack)
@@ -258,7 +278,9 @@ do
     end,
     _writeTagged = function(self, value, stack)
       local tag = _getTag(value)
-      assert(tag, tag or "Can't write values of type '" .. tostring(type(value)) .. "'")
+      if not (tag) then
+        error("Can't write values of type '" .. tostring(type(value)) .. "'")
+      end
       self:u8(tag)
       return _taggedWriters[tag](self, value, stack)
     end

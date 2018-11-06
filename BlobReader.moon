@@ -20,17 +20,7 @@ class BlobReader
 	-- @usage reader = BlobReader(data, '>')
 	-- @usage reader = BlobReader(cdata, nil, 1000)
 	new: (data, byteOrder, size) =>
-		dtype = type(data)
-		if dtype == 'string'
-			@_allocate(#data)
-			ffi.copy(@_data, data, #data)
-		elseif dtype == 'cdata'
-			@_size = size or ffi.sizeof(data)
-			@_data = data
-		else
-			error("Invalid data type <#{dtype}>")
-
-		@_readPtr = 0
+		@reset(data, size)
 		@setByteOrder(byteOrder)
 
 	--- Set source data byte order.
@@ -69,7 +59,7 @@ class BlobReader
 	-- @see BlobWriter:string
 	string: =>
 		len, ptr = @vu32!, @_readPtr
-		assert(ptr + len - 1 < @_size, "Out of data")
+		error("Out of data") if @_size <= ptr + len - 1
 		@_readPtr = ptr + len
 		ffi.string(ffi.cast('uint8_t*', @_data + ptr), len)
 
@@ -98,7 +88,7 @@ class BlobReader
 	--
 	-- @treturn number The unsigned 8-bit value read from the input data
 	u8: =>
-		assert(@_readPtr < @._size, "Out of data")
+		error("Out of data") if @_size <= @_readPtr
 		u8 = @_data[@_readPtr]
 		@_readPtr += 1
 		u8
@@ -115,7 +105,7 @@ class BlobReader
 	-- @treturn number The unsigned 16-bit value read from the input data
 	u16: =>
 		ptr = @_readPtr
-		assert(ptr + 1 < @_size, "Out of data")
+		error("Out of data") if @_size <= ptr + 1
 		@_readPtr = ptr + 2
 		@_orderBytes._16(@_data[ptr], @_data[ptr + 1])
 
@@ -131,7 +121,7 @@ class BlobReader
 	-- @treturn number The unsigned 32-bit value read from the input data
 	u32: =>
 		ptr = @_readPtr
-		assert(ptr + 3 < @_size, "Out of data")
+		error("Out of data") if @_size <= ptr + 3
 		@_readPtr = ptr + 4
 		@_orderBytes._32(@_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3])
 
@@ -147,7 +137,7 @@ class BlobReader
 	-- @treturn number The unsigned 64-bit value read from the input data
 	u64: =>
 		ptr = @_readPtr
-		assert(ptr + 7 < @_size, "Out of data")
+		error("Out of data") if @_size <= ptr + 7
 		@_readPtr = ptr + 8
 		@_orderBytes._64(@_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3],
 			@_data[ptr + 4], @_data[ptr + 5], @_data[ptr + 6], @_data[ptr + 7])
@@ -210,7 +200,7 @@ class BlobReader
 	-- @treturn string A string with raw data
 	raw: (len) =>
 		ptr = @_readPtr
-		assert(ptr + len - 1 < @_size, "Out of data")
+		error("Out of data") if @_size <= ptr + len - 1
 		@_readPtr = ptr + len
 		ffi.string(ffi.cast('uint8_t*', @_data + ptr), len)
 
@@ -219,7 +209,7 @@ class BlobReader
 	-- @tparam number len The number of bytes to skip
 	-- @treturn BlobReader self
 	skip: (len) =>
-		assert(@_readPtr + len - 1 < @_size, "Out of data")
+		error("Out of data") if @_size <= @_readPtr + len - 1
 		@_readPtr += len
 		@
 
@@ -231,9 +221,9 @@ class BlobReader
 		ptr, start = @_readPtr, @_readPtr
 		while ptr < @_size and @_data[ptr] > 0
 			ptr += 1
-		error("Out of data") if ptr == @_size
+		error("Out of data") if @_size == ptr
 		@_readPtr, len = ptr + 1, ptr - start
-		assert(len < 2 ^ 32, "String too long")
+		error("String too long") if len >= 2 ^ 32
 		ffi.string(ffi.cast('uint8_t*', @_data + start), len)
 
 	--- Reads a sequential table of typed values.
@@ -250,9 +240,9 @@ class BlobReader
 	-- @see BlobWriter:array
 	array: (valueType, result = {}) =>
 		reader = _arrayTypeMap[valueType]
-		assert(reader, reader or "Invalid array type <#{valueType}>")
+		error("Invalid array type <#{valueType}>") unless reader
 		length = @vu32!
-		result[#result + 1] = reader(@) for i = 1, length
+		result[i] = reader(@) for i = 1, length
 		result
 
 	--- Parses data into separate values according to a format string.
@@ -270,13 +260,12 @@ class BlobReader
 	-- @usage byte, float, bool = reader\unpack('x4Bfy') -- skips 4 bytes before actual data
 	-- @see BlobWriter:pack
 	unpack: (format) =>
-		assert(type(format) == 'string', "Invalid format specifier")
 		result, len, lenContext = {}, nil, nil
 
 		raw = ->
 			l = tonumber(table.concat(len))
-			assert(l, l or "Invalid string length specification: #{table.concat(len)}")
-			assert(l < 2 ^ 32, "Maximum string length exceeded")
+			error("Invalid string length specification: #{table.concat(len)}") unless l
+			error("Maximum string length exceeded") if l >= 2 ^ 32
 			table.insert(result, @raw(l))
 			len = nil
 
@@ -293,7 +282,7 @@ class BlobReader
 
 			unless len
 				parser = _unpackMap[c]
-				assert(parser, parser or "Invalid data type specifier: #{c}")
+				error("Invalid data type specifier: #{c}") unless parser
 				switch c
 					when 'c'
 						len, lenContext = {}, raw
@@ -312,10 +301,29 @@ class BlobReader
 	-- @treturn number Data size in bytes
 	size: => @_size
 
-	--- Resets the read position to the beginning of the data.
+	--- Rewinds the read position to the beginning of the data.
 	--
 	-- @treturn BlobReader self
 	rewind: =>
+		@_readPtr = 0
+		@
+
+	--- Re-initializes the reader with new data and resets the read position.
+	--
+	-- @tparam string|cdata data The data to read from
+	-- @tparam[opt] number size When data is of type `cdata`, you need to pass the size manually
+	-- @treturn BlobReader self
+	reset: (data, size) =>
+		dtype = type(data)
+		if dtype == 'string'
+			@_allocate(#data)
+			ffi.copy(@_data, data, #data)
+		elseif dtype == 'cdata'
+			@_size = size or ffi.sizeof(data)
+			@_data = data
+		elseif data
+			error("Invalid data type <#{dtype}>")
+
 		@_readPtr = 0
 		@
 

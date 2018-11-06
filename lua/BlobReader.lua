@@ -20,7 +20,9 @@ do
     end,
     string = function(self)
       local len, ptr = self:vu32(), self._readPtr
-      assert(ptr + len - 1 < self._size, "Out of data")
+      if self._size <= ptr + len - 1 then
+        error("Out of data")
+      end
       self._readPtr = ptr + len
       return ffi.string(ffi.cast('uint8_t*', self._data + ptr), len)
     end,
@@ -39,7 +41,9 @@ do
       return result
     end,
     u8 = function(self)
-      assert(self._readPtr < self._size, "Out of data")
+      if self._size <= self._readPtr then
+        error("Out of data")
+      end
       local u8 = self._data[self._readPtr]
       self._readPtr = self._readPtr + 1
       return u8
@@ -50,7 +54,9 @@ do
     end,
     u16 = function(self)
       local ptr = self._readPtr
-      assert(ptr + 1 < self._size, "Out of data")
+      if self._size <= ptr + 1 then
+        error("Out of data")
+      end
       self._readPtr = ptr + 2
       return self._orderBytes._16(self._data[ptr], self._data[ptr + 1])
     end,
@@ -60,7 +66,9 @@ do
     end,
     u32 = function(self)
       local ptr = self._readPtr
-      assert(ptr + 3 < self._size, "Out of data")
+      if self._size <= ptr + 3 then
+        error("Out of data")
+      end
       self._readPtr = ptr + 4
       return self._orderBytes._32(self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3])
     end,
@@ -70,7 +78,9 @@ do
     end,
     u64 = function(self)
       local ptr = self._readPtr
-      assert(ptr + 7 < self._size, "Out of data")
+      if self._size <= ptr + 7 then
+        error("Out of data")
+      end
       self._readPtr = ptr + 8
       return self._orderBytes._64(self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3], self._data[ptr + 4], self._data[ptr + 5], self._data[ptr + 6], self._data[ptr + 7])
     end,
@@ -127,12 +137,16 @@ do
     end,
     raw = function(self, len)
       local ptr = self._readPtr
-      assert(ptr + len - 1 < self._size, "Out of data")
+      if self._size <= ptr + len - 1 then
+        error("Out of data")
+      end
       self._readPtr = ptr + len
       return ffi.string(ffi.cast('uint8_t*', self._data + ptr), len)
     end,
     skip = function(self, len)
-      assert(self._readPtr + len - 1 < self._size, "Out of data")
+      if self._size <= self._readPtr + len - 1 then
+        error("Out of data")
+      end
       self._readPtr = self._readPtr + len
       return self
     end,
@@ -141,12 +155,14 @@ do
       while ptr < self._size and self._data[ptr] > 0 do
         ptr = ptr + 1
       end
-      if ptr == self._size then
+      if self._size == ptr then
         error("Out of data")
       end
       local len
       self._readPtr, len = ptr + 1, ptr - start
-      assert(len < 2 ^ 32, "String too long")
+      if len >= 2 ^ 32 then
+        error("String too long")
+      end
       return ffi.string(ffi.cast('uint8_t*', self._data + start), len)
     end,
     array = function(self, valueType, result)
@@ -154,21 +170,26 @@ do
         result = { }
       end
       local reader = _arrayTypeMap[valueType]
-      assert(reader, reader or "Invalid array type <" .. tostring(valueType) .. ">")
+      if not (reader) then
+        error("Invalid array type <" .. tostring(valueType) .. ">")
+      end
       local length = self:vu32()
       for i = 1, length do
-        result[#result + 1] = reader(self)
+        result[i] = reader(self)
       end
       return result
     end,
     unpack = function(self, format)
-      assert(type(format) == 'string', "Invalid format specifier")
       local result, len, lenContext = { }, nil, nil
       local raw
       raw = function()
         local l = tonumber(table.concat(len))
-        assert(l, l or "Invalid string length specification: " .. tostring(table.concat(len)))
-        assert(l < 2 ^ 32, "Maximum string length exceeded")
+        if not (l) then
+          error("Invalid string length specification: " .. tostring(table.concat(len)))
+        end
+        if l >= 2 ^ 32 then
+          error("Maximum string length exceeded")
+        end
         table.insert(result, self:raw(l))
         len = nil
       end
@@ -187,7 +208,9 @@ do
         end
         if not (len) then
           local parser = _unpackMap[c]
-          assert(parser, parser or "Invalid data type specifier: " .. tostring(c))
+          if not (parser) then
+            error("Invalid data type specifier: " .. tostring(c))
+          end
           local _exp_0 = c
           if 'c' == _exp_0 then
             len, lenContext = { }, raw
@@ -213,6 +236,20 @@ do
       self._readPtr = 0
       return self
     end,
+    reset = function(self, data, size)
+      local dtype = type(data)
+      if dtype == 'string' then
+        self:_allocate(#data)
+        ffi.copy(self._data, data, #data)
+      elseif dtype == 'cdata' then
+        self._size = size or ffi.sizeof(data)
+        self._data = data
+      elseif data then
+        error("Invalid data type <" .. tostring(dtype) .. ">")
+      end
+      self._readPtr = 0
+      return self
+    end,
     position = function(self)
       return self._readPtr
     end,
@@ -231,17 +268,7 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self, data, byteOrder, size)
-      local dtype = type(data)
-      if dtype == 'string' then
-        self:_allocate(#data)
-        ffi.copy(self._data, data, #data)
-      elseif dtype == 'cdata' then
-        self._size = size or ffi.sizeof(data)
-        self._data = data
-      else
-        error("Invalid data type <" .. tostring(dtype) .. ">")
-      end
-      self._readPtr = 0
+      self:reset(data, size)
       return self:setByteOrder(byteOrder)
     end,
     __base = _base_0,

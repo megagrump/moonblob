@@ -145,7 +145,7 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	-- @see BlobWriter:vu32size
 	vu32: (value) =>
-		assert(value < 2 ^ 32, "Exceeded u32 value limits")
+		error("Exceeded u32 value limits") unless value < 2 ^ 32
 
 		for i = 7, 28, 7
 			mask, shift = 2 ^ i - 1, i - 7
@@ -176,7 +176,7 @@ class BlobWriter
 	-- @see BlobWriter:vu32
 	-- @see BlobWriter:vs32size
 	vs32: (value) =>
-		assert(value < 2 ^ 31 and value >= -2^31, "Exceeded s32 value limits")
+		error("Exceeded s32 value limits") unless value < 2 ^ 31 and value >= -2^31
 
 		signBit, value = value < 0 and 1 or 0, math.abs(value)
 		return @u8(shl(band(value, 0x3f), 1) + signBit) if value < 2 ^ 6
@@ -266,7 +266,7 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	array: (valueType, value) =>
 		writer = _arrayTypeMap[valueType]
-		assert(writer, writer or "Invalid array type <#{valueType}>")
+		error("Invalid array type <#{valueType}>") unless writer
 		@vu32(#value)
 		writer(@, v) for v in *value
 		@
@@ -310,15 +310,13 @@ class BlobWriter
 	-- @usage writer\pack('Bfy', 255, 23.0, true)
 	-- @see BlobReader:unpack
 	pack: (format, ...) =>
-		assert(type(format) == 'string', "Invalid format specifier")
-
 		data, index, len = {...}, 1, nil
 		limit = select('#', ...)
 
 		_writeRaw = ->
 			l = tonumber(table.concat(len))
-			assert(l, l or "Invalid string length specification: #{table.concat(len)}")
-			assert(l < 2 ^ 32, "Maximum string length exceeded")
+			error("Invalid string length specification: #{table.concat(len)}") unless l
+			error("Maximum string length exceeded") unless l < 2 ^ 32
 			@raw(data[index], l)
 			index, len = index + 1, nil
 
@@ -327,16 +325,16 @@ class BlobWriter
 				if tonumber(c)
 					table.insert(len, c)
 				else
-					assert(index <= limit, "Number of arguments to pack does not match format specifiers")
+					error("Number of arguments to pack does not match format specifiers") unless index <= limit
 					_writeRaw!
 
 			unless len
 				writer = _packMap[c]
-				assert(writer, writer or "Invalid data type specifier: #{c}")
+				error("Invalid data type specifier: #{c}") unless writer
 				if c == 'c'
 					len = {}
 				else
-					assert(index <= limit, "Number of arguments to pack does not match format specifiers")
+					error("Number of arguments to pack does not match format specifiers") unless index <= limit
 					index += 1 if writer(@, data[index])
 		)
 		_writeRaw! if len -- final specifier in format was a length specifier
@@ -376,7 +374,7 @@ class BlobWriter
 	-- @tparam number value The unsigned 32 bit value to write
 	-- @treturn number The number of bytes required by @{vu32} to store `value`
 	vu32size: (value) =>
-		assert(value < 2 ^ 32, "Exceeded u32 value limits")
+		error("Exceeded u32 value limits") unless value < 2 ^ 32
 		return 1 if value < 2 ^ 7
 		return 2 if value < 2 ^ 14
 		return 3 if value < 2 ^ 21
@@ -388,7 +386,7 @@ class BlobWriter
 	-- @tparam number value The signed 32 bit value to write
 	-- @treturn number The number of bytes required by @{vs32} to store `value`
 	vs32size: (value) =>
-		assert(value < 2 ^ 31 and value >= -2 ^ 31, "Exceeded s32 value limits")
+		error("Exceeded s32 value limits") unless value < 2 ^ 31 and value >= -2 ^ 31
 		value = math.abs(value) + 1
 		return 1 if value < 2 ^ 7
 		return 2 if value < 2 ^ 14
@@ -412,10 +410,8 @@ class BlobWriter
 		@_allocate(newSize)
 
 	_writeTable: (t, stack) =>
-		stack = stack or {}
-		ttype = type(t)
-		assert(ttype == 'table', ttype == 'table' or "Invalid type '#{ttype}' for BlobWriter:table")
-		assert(not stack[t], "Cycle detected; can't serialize table")
+		stack, ttype = stack or {}, type(t)
+		error("Cycle detected; can't serialize table") if stack[t]
 
 		stack[t] = true
 		for key, value in pairs(t)
@@ -427,7 +423,7 @@ class BlobWriter
 
 	_writeTagged: (value, stack) =>
 		tag = _getTag(value)
-		assert(tag, tag or "Can't write values of type '#{type(value)}'")
+		error("Can't write values of type '#{type(value)}'") unless tag
 		@u8(tag)
 
 		_taggedWriters[tag](@, value, stack)
