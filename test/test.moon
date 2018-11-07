@@ -2,7 +2,7 @@
 _globals = {}
 _globals[k] = v for k, v in pairs(_G)
 
-package.moonpath = "#{package.moonpath];../?.moon"
+package.moonpath = "#{package.moonpath};../?.moon"
 lu = require('luaunit')
 ffi = require('ffi')
 BlobReader = require('BlobReader')
