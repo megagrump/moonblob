@@ -47,7 +47,7 @@ class BlobWriter
 	-- @tparam number value The number to write
 	-- @treturn BlobWriter self
 	number: (value) =>
-		_native.n = value
+		_native.f64 = value
 		@u32(_native.u32[0])\u32(_native.u32[1])
 
 	--- Writes a boolean value to the output buffer.
@@ -214,7 +214,7 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	f32: (value) =>
-		_native.f[0] = value
+		_native.f32[0] = value
 		@u32(_native.u32[0])
 
 	--- Writes a 64 bit floating point value to the output buffer.
@@ -436,10 +436,10 @@ _native = ffi.new[[
 		uint16_t u16[4];
 		 int32_t s32[2];
 		uint32_t u32[2];
-		   float f[2];
+		   float f32[2];
 		 int64_t s64;
 		uint64_t u64;
-		  double n;
+		  double f64;
 	}
 ]]
 
@@ -454,14 +454,28 @@ _tags =
 	table: 3
 	[true]: 4
 	[false]: 5
+	zero: 6
+	vs32: 7
+	vu32: 8
+	vs64: 9
+	vu64: 10
 
 with BlobWriter
 	_taggedWriters = {
 		.number
 		.string
 		._writeTable
-		=> @ -- true is stored as tag, write nothing
-		=> @ -- false is stored as tag, write nothing
+		=> @ -- true
+		=> @ -- false
+		=> @ -- 0
+		.vs32
+		.vu32
+		(val) =>
+			_native.s64 = val
+			@vs32(_native.s32[0])\vs32(_native.s32[1])
+		(val) =>
+			_native.u64 = val
+			@vu32(_native.u32[0])\vs32(_native.u32[1])
 	}
 
 	_arrayTypeMap =
@@ -519,7 +533,18 @@ _parseByteOrder = (endian) ->
 	endian
 
 _getTag = (value) ->
-	return _tags[value] if value == true or value == false
-	_tags[type(value)]
+	t = type(value)
+	switch t
+		when 'boolean'
+			return _tags[value]
+		when 'number'
+			return _tags.zero if value == 0
+			return _tags.number if math.floor(value) ~= value
+			if value >= 0
+				return _tags.vu32 if value < 2 ^ 32
+				return _tags.vu64
+			return _tags.vs32 if value >= -2 ^ 31
+			return _tags.vs64
+	_tags[t]
 
 BlobWriter

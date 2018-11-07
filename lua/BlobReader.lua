@@ -16,7 +16,7 @@ do
     end,
     number = function(self)
       _native.u32[0], _native.u32[1] = self:u32(), self:u32()
-      return _native.n
+      return _native.f64
     end,
     string = function(self)
       local len, ptr = self:vu32(), self._readPtr
@@ -90,7 +90,7 @@ do
     end,
     f32 = function(self)
       _native.u32[0] = self:u32()
-      return _native.f[0]
+      return _native.f32[0]
     end,
     f64 = function(self)
       return self:number()
@@ -244,7 +244,7 @@ do
       elseif dtype == 'cdata' then
         self._size = size or ffi.sizeof(data)
         self._data = data
-      elseif data then
+      else
         error("Invalid data type <" .. tostring(dtype) .. ">")
       end
       self._readPtr = 0
@@ -310,10 +310,10 @@ _native = ffi.new([[	union {
 		uint16_t u16[4];
 		 int32_t s32[2];
 		uint32_t u32[2];
-		   float f[2];
+		   float f32[2];
 		 int64_t s64;
 		uint64_t u64;
-		  double n;
+		  double f64;
 	}
 ]])
 _endian = {
@@ -354,20 +354,38 @@ _tags = {
   string = 2,
   table = 3,
   [true] = 4,
-  [false] = 5
-}
-_taggedReaders = {
-  BlobReader.number,
-  BlobReader.string,
-  BlobReader.table,
-  function(self)
-    return true
-  end,
-  function(self)
-    return false
-  end
+  [false] = 5,
+  zero = 6,
+  vs32 = 7,
+  vu32 = 8,
+  vs64 = 9,
+  vu64 = 10
 }
 do
+  _taggedReaders = {
+    BlobReader.number,
+    BlobReader.string,
+    BlobReader.table,
+    function(self)
+      return true
+    end,
+    function(self)
+      return false
+    end,
+    function(self)
+      return 0
+    end,
+    BlobReader.vs32,
+    BlobReader.vu32,
+    function(self)
+      _native.s32[0], _native.s32[1] = self:vs32(), self:vs32()
+      return _native.s64
+    end,
+    function(self)
+      _native.u32[0], _native.u32[1] = self:vu32(), self:vu32()
+      return _native.u64
+    end
+  }
   _arrayTypeMap = {
     s8 = BlobReader.s8,
     u8 = BlobReader.u8,

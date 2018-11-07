@@ -56,6 +56,7 @@ test_CData = ->
 
 test_Formatted = ->
 	b0 = BlobWriter!
+
 	with b0
 		\write(123)
 		\write(true)
@@ -64,6 +65,7 @@ test_Formatted = ->
 		\write({
 			num: 1
 			sub: { num: 2 }
+			[{}]: { tableAsIndex: true }
 		})
 
 	b1 = BlobReader(b0\tostring!)
@@ -76,6 +78,25 @@ test_Formatted = ->
 	t = b1\read!
 	equals(t.num, 1)
 	equals(t.sub.num, 2)
+
+	tableIndexFound = false
+	for k, v in pairs(t)
+		tableIndexFound = type(k) == 'table' and v.tableAsIndex
+		break if tableIndexFound
+	isTrue(tableIndexFound)
+
+	deepTable = { inner: { val: 0 } }
+	nested = deepTable.inner
+	for i = 1, 1000
+		nested.inner = { val: i }
+		nested = nested.inner
+	w = BlobWriter!\table(deepTable)\tostring!
+	r = BlobReader(w)\table!
+
+	nested = r.inner
+	for i = 0, 1000
+		lu.assertEquals(nested.val, i)
+		nested = nested.inner
 
 test_DataTypes = ->
 	for _, endian in ipairs({ '<', '>', '=' })
@@ -477,6 +498,11 @@ test_Writer_array = ->
 	_testTypeSize('cstring', { 'test2', '12345' }, 6)
 	_testTypeSize('bool', { true, false }, 1)
 
+	large = {}
+	large[i] = i for i = 1, 2 ^ 20
+	res = BlobWriter!\array('u32', large)\tostring!
+	equals(#res, 3 + 2 ^ 20 * 4)
+
 	isError('Invalid array', BlobWriter.array, BlobWriter!, 'inv', {})
 
 test_Reader_array = ->
@@ -550,6 +576,13 @@ test_Reader_array = ->
 		equals(.hello, 'world')
 		isTrue(.success)
 		equals(.answer, 23)
+
+	large = {}
+	large[i] = i for i = 1, 2 ^ 20
+	d = BlobReader(BlobWriter!\array('u32', large)\tostring!)\array('u32')
+	equals(#d, 2 ^ 20)
+	equals(d[i], i) for i = 1, #d
+
 
 test_xxxLastCheckGlobals = ->
 	for k, v in pairs(_G)

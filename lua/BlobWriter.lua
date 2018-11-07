@@ -14,7 +14,7 @@ do
       return self:_writeTagged(value)
     end,
     number = function(self, value)
-      _native.n = value
+      _native.f64 = value
       return self:u32(_native.u32[0]):u32(_native.u32[1])
     end,
     bool = function(self, value)
@@ -108,7 +108,7 @@ do
       return self:u32(a):u32(b)
     end,
     f32 = function(self, value)
-      _native.f[0] = value
+      _native.f32[0] = value
       return self:u32(_native.u32[0])
     end,
     f64 = function(self, value)
@@ -312,10 +312,10 @@ _native = ffi.new([[	union {
 		uint16_t u16[4];
 		 int32_t s32[2];
 		uint32_t u32[2];
-		   float f[2];
+		   float f32[2];
 		 int64_t s64;
 		uint64_t u64;
-		  double n;
+		  double f64;
 	}
 ]])
 _byteOrder = {
@@ -332,7 +332,12 @@ _tags = {
   string = 2,
   table = 3,
   [true] = 4,
-  [false] = 5
+  [false] = 5,
+  zero = 6,
+  vs32 = 7,
+  vu32 = 8,
+  vs64 = 9,
+  vu64 = 10
 }
 do
   _taggedWriters = {
@@ -344,6 +349,19 @@ do
     end,
     function(self)
       return self
+    end,
+    function(self)
+      return self
+    end,
+    BlobWriter.vs32,
+    BlobWriter.vu32,
+    function(self, val)
+      _native.s64 = val
+      return self:vs32(_native.s32[0]):vs32(_native.s32[1])
+    end,
+    function(self, val)
+      _native.u64 = val
+      return self:vu32(_native.u32[0]):vs32(_native.u32[1])
     end
   }
   _arrayTypeMap = {
@@ -409,9 +427,28 @@ _parseByteOrder = function(endian)
   return endian
 end
 _getTag = function(value)
-  if value == true or value == false then
+  local t = type(value)
+  local _exp_0 = t
+  if 'boolean' == _exp_0 then
     return _tags[value]
+  elseif 'number' == _exp_0 then
+    if value == 0 then
+      return _tags.zero
+    end
+    if math.floor(value) ~= value then
+      return _tags.number
+    end
+    if value >= 0 then
+      if value < 2 ^ 32 then
+        return _tags.vu32
+      end
+      return _tags.vu64
+    end
+    if value >= -2 ^ 31 then
+      return _tags.vs32
+    end
+    return _tags.vs64
   end
-  return _tags[type(value)]
+  return _tags[t]
 end
 return BlobWriter

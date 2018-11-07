@@ -49,7 +49,7 @@ class BlobReader
 	-- @treturn number The number read read from the input data
 	number: =>
 		_native.u32[0], _native.u32[1] = @u32!, @u32!
-		_native.n
+		_native.f64
 
 	--- Reads a string from the input data.
 	--
@@ -154,7 +154,7 @@ class BlobReader
 	-- @treturn number The 32-bit floating point value read from the input data
 	f32: =>
 		_native.u32[0] = @u32!
-		_native.f[0]
+		_native.f32[0]
 
 	--- Reads one 64 bit floating point value from the input data.
 	--
@@ -311,7 +311,7 @@ class BlobReader
 	--- Re-initializes the reader with new data and resets the read position.
 	--
 	-- @tparam string|cdata data The data to read from
-	-- @tparam[opt] number size When data is of type `cdata`, you need to pass the size manually
+	-- @tparam[opt] number size The length of the data
 	-- @treturn BlobReader self
 	reset: (data, size) =>
 		dtype = type(data)
@@ -321,7 +321,7 @@ class BlobReader
 		elseif dtype == 'cdata'
 			@_size = size or ffi.sizeof(data)
 			@_data = data
-		elseif data
+		else
 			error("Invalid data type <#{dtype}>")
 
 		@_readPtr = 0
@@ -367,10 +367,10 @@ _native = ffi.new[[
 		uint16_t u16[4];
 		 int32_t s32[2];
 		uint32_t u32[2];
-		   float f[2];
+		   float f32[2];
 		 int64_t s64;
 		uint64_t u64;
-		  double n;
+		  double f64;
 	}
 ]]
 
@@ -410,16 +410,30 @@ _tags =
 	table: 3
 	[true]: 4
 	[false]: 5
-
-_taggedReaders = {
-	BlobReader.number
-	BlobReader.string
-	BlobReader.table
-	=> true
-	=> false
-}
+	zero: 6
+	vs32: 7
+	vu32: 8
+	vs64: 9
+	vu64: 10
 
 with BlobReader
+	_taggedReaders = {
+		.number
+		.string
+		.table
+		=> true
+		=> false
+		=> 0
+		.vs32
+		.vu32
+		=>
+			_native.s32[0], _native.s32[1] = @vs32!, @vs32!
+			_native.s64
+		=>
+			_native.u32[0], _native.u32[1] = @vu32!, @vu32!
+			_native.u64
+	}
+
 	_arrayTypeMap =
 		s8:      .s8
 		u8:      .u8
