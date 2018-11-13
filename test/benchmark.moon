@@ -1,14 +1,13 @@
-package.moonpath = "#{package.moonpath};../?.moon"
+assert(love, "Run main.lua with LÖVE >= 11")
+package.moonpath = "#{package.moonpath};../?.moon" -- grab BlobWriter/Reader from parent directory
 
 gfx, timer, fs = love.graphics, love.timer.getTime, love.filesystem
-BENCHMARK_TIME = .5 -- approx. number of seconds each benchmark runs
+BENCHMARK_TIME = .1 -- approx. number of seconds each benchmark runs
 
-collectgarbage('stop')
-
-testData =
-	largeNumberArray: -> [ i for i = 1, 2 ^ 16 ]
-	largeU32Array: -> [ i * 256 for i = 1, 2 ^ 16 ]
-	smallNumberArray: -> [ i * i for i = 1, 255 ]
+tests =
+	largeNumArray: -> [ i * .5 for i = 1, 2 ^ 16 ]
+	largeU32Array: -> [ i * i for i = 1, 2 ^ 16 ]
+	smallNumArray: -> [ i * .5 for i = 1, 255 ]
 	smallU8Array: -> [ i for i = 0, 255 ]
 	simpleTable: ->
 		{
@@ -18,7 +17,6 @@ testData =
 			number3: 666.66
 			string: 'text'
 			bool: true
-			nested: { zero: 0, one: 1 }
 		}
 
 	deepTable: ->
@@ -37,14 +35,17 @@ testData =
 			current = current.nested
 		result
 
-generateData = -> { name, func! for name, func in pairs(testData) }
+testNames = [ name for name in pairs(tests) ]
+table.sort(testNames)
 
 benchmarks =
+	names: {}
 	libraries: {}
 
 loadBenchmarks = ->
 	dir = fs.getDirectoryItems('benchmarks')
 	for item in *dir
+		continue unless item\match('benchmark_')
 		name = item\gsub('%.moon', '')
 		benchmark = require('benchmarks.' .. name)
 
@@ -54,15 +55,19 @@ loadBenchmarks = ->
 			serialize: { k, v for k, v in pairs(benchmark.serialize) }
 			deserialize: { k, v for k, v in pairs(benchmark.deserialize) }
 
-local benchmark
+	benchmarks.names = [ name for name in pairs(benchmarks.libraries) ]
+	table.sort(benchmarks.names, (a, b) -> b < a)
+
+
+local benchmarkThread
 frame = 0
 
-run = (benchmark, data) ->
+run = (what, data) ->
 	time, counter, resultData = 0, 0
 	okay, result = pcall(->
 		start = timer!
 		while time < BENCHMARK_TIME
-			resultData = benchmark(data)
+			resultData = what(data)
 			time = timer! - start
 			counter = counter + 1
 
@@ -80,40 +85,52 @@ run = (benchmark, data) ->
 			time: BENCHMARK_TIME
 			error: result
 		}
-
-	collectgarbage!
 	result
 
 runBenchmarks = ->
-	testData = generateData!
+	testData = { name, func! for name, func in pairs(tests) }
 
-	libs = [ name for name in pairs(benchmarks.libraries) ]
-	table.sort(libs)
+	collectgarbage('stop')
 
-	tests = [ name for name in pairs(testData) ]
-	table.sort(tests)
-
-	for test in *tests
+	for test in *testNames
 		data = testData[test]
-		for libName in *libs
+		for libName in *benchmarks.names
 			lib = benchmarks.libraries[libName]
+			collectgarbage!
 			okay, result = pcall(run, lib.serialize[test], data)
 			lib.results[test] = { serialize: result }
 			coroutine.yield!
 
+			collectgarbage!
 			okay, result = pcall(run, lib.deserialize[test], result.data)
 			lib.results[test].deserialize = result
 			coroutine.yield!
 
+	collectgarbage('restart')
+
+	for part in *{ "serialize", "deserialize" }
+		output = {
+			part .. " | " .. table.concat(testNames, ' | '),
+			"--- | "\rep(#testNames + 1),
+		}
+		for libName in *benchmarks.names
+			lib = benchmarks.libraries[libName]
+			line = lib.description .. " | "
+			for test in *testNames
+				results = lib.results[test][part]
+				line = line .. (math.floor(#results.data / results.time + .5)) .. " | "
+			output[#output + 1] = line
+		print(table.concat(output, '\n'))
+
 love.load = ->
 	loadBenchmarks!
-	benchmark = coroutine.create(runBenchmarks)
+	benchmarkThread = coroutine.create(runBenchmarks)
 
 love.update = ->
 	x, y, frame = 10, 1, frame + 1
 	frame = frame + 1
 	return if frame < 5
-	coroutine.resume(benchmark) unless coroutine.status(benchmark) == 'dead'
+	coroutine.resume(benchmarkThread)
 
 lineHeight = math.floor(gfx.getFont!\getHeight! * 1.25)
 
@@ -144,35 +161,28 @@ maxCount = {
 love.draw = ->
 	gfx.clear(.2, .2, .2)
 
-	tests = [ name for name in pairs(testData) ]
-	table.sort(tests)
-
-	libs = [ name for name in pairs(benchmarks.libraries) ]
-	table.sort(libs)
-
 	x, y = 10, 5
-	for testName in *tests
-		maxCount.serialize[testName] = maxCount.serialize[testName] or 0
-		maxCount.deserialize[testName] = maxCount.deserialize[testName] or 0
+	for test in *testNames
+		maxCount.serialize[test] = maxCount.serialize[test] or 0
+		maxCount.deserialize[test] = maxCount.deserialize[test] or 0
 		for part in *{ 'serialize', 'deserialize' }
 			for libName, lib in pairs(benchmarks.libraries)
 				count = maxCount[part]
-				results = lib.results[testName]
-				count[testName] = math.max(results[part].count, count[testName]) if results and results[part]
+				results = lib.results[test]
+				count[test] = math.max(results[part].count, count[test]) if results and results[part]
 
 	ry = y
-	for testName in *tests
+	for test in *testNames
 		for part in *{ 'serialize', 'deserialize' }
 			ry, rx = y, x + (part == 'deserialize' and 320 or 0)
 			gfx.setColor(1, 1, 1)
-			gfx.print(testName .. '.' .. part, rx, y)
+			gfx.print("%s %s"\format(part, test), rx, y)
 			ry += lineHeight
-			--for libName, lib in pairs(benchmarks.libraries)
-			for libName in *libs
+			for libName in *benchmarks.names
 				lib = benchmarks.libraries[libName]
-				results = lib.results[testName]
+				results = lib.results[test]
 				if results and results[part]
-					drawResult(lib.description, results[part], maxCount[part][testName], rx, ry)
+					drawResult(lib.description, results[part], maxCount[part][test], rx, ry)
 				else
 					gfx.setColor(1, 1, 1)
 					gfx.print("waiting for %s..."\format(lib.description), rx, ry)

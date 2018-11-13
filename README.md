@@ -146,6 +146,34 @@ These data types are supported by `BlobReader\read` and `BlobWriter\write`:
 
 Type and length information will be added as metadata by the `write` function. Metadata overhead is 1 byte per value written for type information, and between 1 and 5 bytes per string written for length information. Tables can contain `number`, `string`, `boolean`, and `table` as key and value types. An error is being thrown if other types or cyclic nested tables are encountered.
 
+### Benchmark results
+
+Source code for benchmarks can be found in the `test` directory.
+
+Serialization speed (ops/sec, larger is better)
+
+--- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
+--- | --- | --- | --- | --- | --- | --- | 
+BlobWriter | **993** | **1,663** | **5,751** | **482,095** | **469,810** | **881,105** | 
+bitser | 418 | 132 | 149 | 387,260 | 34,092 | 38,611 | 
+binser | 484 | 31 | 33 | 236,147 | 13,511 | 16,956 | 
+
+Deserialization speed (ops/sec, larger is better)
+
+--- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
+--- | --- | --- | --- | --- | --- | --- | 
+BlobReader | 2,008 | **559** | **1,040** | 571,564 | 128,168 | **336,596** | 
+bitser | 692 | 43 | 29 | 396,088 | 13,018 | 32726 | 
+binser | **2,486** | 501 | 481 | **675,342** | **151,520** | 211,834 | 
+
+Serialization size (bytes, smaller is better)
+
+--- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
+--- | --- | --- | --- | --- | --- | --- | 
+BlobWriter | 45,808 | 524,291 | **262147** | 69 | 2,042 | **258** | 
+bitser | **25,732** | **393,025** | 404,089 | **62** | 1,338 | 571 | 
+binser | 25,837 | 532,398 | 589,195 | 69 | **1,310** | 415 | 
+
 ### Compatibility
 
 Since moonblob uses the ffi library and C data types, it is not compatible with vanilla Lua and can only be used with LuaJIT.

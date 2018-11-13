@@ -1,20 +1,21 @@
-bitser = require('bitser')
+bitser = require('benchmarks.bitser')
+bitser.loads(bitser.dumps({}))
 
 {
 	description: 'bitser'
 
 	serialize:
-		largeNumberArray: bitser.dumps
+		largeNumArray: bitser.dumps
 		largeU32Array: bitser.dumps
-		smallNumberArray: bitser.dumps
+		smallNumArray: bitser.dumps
 		smallU8Array: bitser.dumps
 		simpleTable: bitser.dumps
 		deepTable: bitser.dumps
 
 	deserialize:
-		largeNumberArray: bitser.loads
+		largeNumArray: bitser.loads
 		largeU32Array: bitser.loads
-		smallNumberArray: bitser.loads
+		smallNumArray: bitser.loads
 		smallU8Array: bitser.loads
 		simpleTable: bitser.loads
 		deepTable: bitser.loads
