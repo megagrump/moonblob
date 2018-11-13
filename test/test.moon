@@ -597,4 +597,12 @@ test_Writer_clear = ->
 	equals(b\size!, 1)
 	equals(b\length!, 0)
 
+test_table_with_nil = ->
+	wt = { 1, 2, nil, 5, 6, nil }
+	w = BlobWriter!
+	d = w\write(wt)\tostring!
+
+	rt = BlobReader(d)\read!
+	equals(wt, rt)
+
 lu.LuaUnit.new!\runSuite!

@@ -1,22 +1,18 @@
 local ffi = require('ffi')
 local band, shr = bit.band, bit.rshift
-local _native, _endian, _parseByteOrder
+local _byteOrder, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 local BlobReader
 do
   local _class_0
   local _base_0 = {
-    setByteOrder = function(self, byteOrder)
-      self._orderBytes = _endian[_parseByteOrder(byteOrder)]
-      return self
-    end,
     read = function(self)
       local tag, value = self:_readTagged()
       return value
     end,
     number = function(self)
-      _native.u32[0], _native.u32[1] = self:u32(), self:u32()
-      return _native.f64
+      self._native.u32[0], self._native.u32[1] = self:u32(), self:u32()
+      return self._native.f64
     end,
     string = function(self)
       local len, ptr = self:vu32(), self._readPtr
@@ -49,8 +45,8 @@ do
       return u8
     end,
     s8 = function(self)
-      _native.u8[0] = self:u8()
-      return _native.s8[0]
+      self._native.u8[0] = self:u8()
+      return self._native.s8[0]
     end,
     u16 = function(self)
       local ptr = self._readPtr
@@ -58,11 +54,11 @@ do
         error("Out of data")
       end
       self._readPtr = ptr + 2
-      return self._orderBytes._16(self._data[ptr], self._data[ptr + 1])
+      return self._orderBytes._16(self, self._data[ptr], self._data[ptr + 1])
     end,
     s16 = function(self)
-      _native.u16[0] = self:u16()
-      return _native.s16[0]
+      self._native.u16[0] = self:u16()
+      return self._native.s16[0]
     end,
     u32 = function(self)
       local ptr = self._readPtr
@@ -70,11 +66,11 @@ do
         error("Out of data")
       end
       self._readPtr = ptr + 4
-      return self._orderBytes._32(self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3])
+      return self._orderBytes._32(self, self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3])
     end,
     s32 = function(self)
-      _native.u32[0] = self:u32()
-      return _native.s32[0]
+      self._native.u32[0] = self:u32()
+      return self._native.s32[0]
     end,
     u64 = function(self)
       local ptr = self._readPtr
@@ -82,15 +78,15 @@ do
         error("Out of data")
       end
       self._readPtr = ptr + 8
-      return self._orderBytes._64(self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3], self._data[ptr + 4], self._data[ptr + 5], self._data[ptr + 6], self._data[ptr + 7])
+      return self._orderBytes._64(self, self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3], self._data[ptr + 4], self._data[ptr + 5], self._data[ptr + 6], self._data[ptr + 7])
     end,
     s64 = function(self)
-      _native.u64 = self:u64()
-      return _native.s64
+      self._native.u64 = self:u64()
+      return self._native.s64
     end,
     f32 = function(self)
-      _native.u32[0] = self:u32()
-      return _native.f32[0]
+      self._native.u32[0] = self:u32()
+      return self._native.f32[0]
     end,
     f64 = function(self)
       return self:number()
@@ -237,21 +233,26 @@ do
       return self
     end,
     reset = function(self, data, size)
-      local dtype = type(data)
-      if dtype == 'string' then
+      if type(data) == 'string' then
         self:_allocate(#data)
         ffi.copy(self._data, data, #data)
-      elseif dtype == 'cdata' then
+      elseif type(data) == 'cdata' then
         self._size = size or ffi.sizeof(data)
         self._data = data
+      elseif data == nil then
+        self._size = 0
+        self._data = nil
       else
         error("Invalid data type <" .. tostring(dtype) .. ">")
       end
-      self._readPtr = 0
-      return self
+      return self:rewind()
     end,
     position = function(self)
       return self._readPtr
+    end,
+    setByteOrder = function(self, byteOrder)
+      self._orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
+      return self
     end,
     _allocate = function(self, size)
       local data
@@ -268,6 +269,19 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self, data, byteOrder, size)
+      self._native = ffi.new([[			union {
+				  int8_t s8[8];
+				 uint8_t u8[8];
+				 int16_t s16[4];
+				uint16_t u16[4];
+				 int32_t s32[2];
+				uint32_t u32[2];
+				   float f32[2];
+				 int64_t s64;
+				uint64_t u64;
+				  double f64;
+			}
+		]])
       self:reset(data, size)
       return self:setByteOrder(byteOrder)
     end,
@@ -303,48 +317,35 @@ _getTag = function(value)
   end
   return _tags[type(value)]
 end
-_native = ffi.new([[	union {
-		  int8_t s8[8];
-		 uint8_t u8[8];
-		 int16_t s16[4];
-		uint16_t u16[4];
-		 int32_t s32[2];
-		uint32_t u32[2];
-		   float f32[2];
-		 int64_t s64;
-		uint64_t u64;
-		  double f64;
-	}
-]])
-_endian = {
+_byteOrder = {
   le = {
-    _16 = function(b1, b2)
-      _native.u8[0], _native.u8[1] = b1, b2
-      return _native.u16[0]
+    _16 = function(self, b1, b2)
+      self._native.u8[0], self._native.u8[1] = b1, b2
+      return self._native.u16[0]
     end,
-    _32 = function(b1, b2, b3, b4)
-      _native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b1, b2, b3, b4
-      return _native.u32[0]
+    _32 = function(self, b1, b2, b3, b4)
+      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b1, b2, b3, b4
+      return self._native.u32[0]
     end,
-    _64 = function(b1, b2, b3, b4, b5, b6, b7, b8)
-      _native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b1, b2, b3, b4
-      _native.u8[4], _native.u8[5], _native.u8[6], _native.u8[7] = b5, b6, b7, b8
-      return _native.u64
+    _64 = function(self, b1, b2, b3, b4, b5, b6, b7, b8)
+      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b1, b2, b3, b4
+      self._native.u8[4], self._native.u8[5], self._native.u8[6], self._native.u8[7] = b5, b6, b7, b8
+      return self._native.u64
     end
   },
   be = {
-    _16 = function(b1, b2)
-      _native.u8[0], _native.u8[1] = b2, b1
-      return _native.u16[0]
+    _16 = function(self, b1, b2)
+      self._native.u8[0], self._native.u8[1] = b2, b1
+      return self._native.u16[0]
     end,
-    _32 = function(b1, b2, b3, b4)
-      _native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b4, b3, b2, b1
-      return _native.u32[0]
+    _32 = function(self, b1, b2, b3, b4)
+      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b4, b3, b2, b1
+      return self._native.u32[0]
     end,
-    _64 = function(b1, b2, b3, b4, b5, b6, b7, b8)
-      _native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b8, b7, b6, b5
-      _native.u8[4], _native.u8[5], _native.u8[6], _native.u8[7] = b4, b3, b2, b1
-      return _native.u64
+    _64 = function(self, b1, b2, b3, b4, b5, b6, b7, b8)
+      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b8, b7, b6, b5
+      self._native.u8[4], self._native.u8[5], self._native.u8[6], self._native.u8[7] = b4, b3, b2, b1
+      return self._native.u64
     end
   }
 }
@@ -378,12 +379,12 @@ do
     BlobReader.vs32,
     BlobReader.vu32,
     function(self)
-      _native.s32[0], _native.s32[1] = self:vs32(), self:vs32()
-      return _native.s64
+      self._native.s32[0], self._native.s32[1] = self:vs32(), self:vs32()
+      return self._native.s64
     end,
     function(self)
-      _native.u32[0], _native.u32[1] = self:vu32(), self:vu32()
-      return _native.u64
+      self._native.u32[0], self._native.u32[1] = self:vu32(), self:vu32()
+      return self._native.u64
     end
   }
   _arrayTypeMap = {
@@ -405,8 +406,6 @@ do
     bool = BlobReader.bool,
     table = BlobReader.table
   }
-end
-do
   _unpackMap = {
     b = BlobReader.s8,
     B = BlobReader.u8,

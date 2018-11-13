@@ -1,21 +1,17 @@
 local ffi = require('ffi')
 local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
-local _native, _byteOrder, _parseByteOrder
-local _orderBytes, _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _byteOrder, _parseByteOrder
+local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 local BlobWriter
 do
   local _class_0
   local _base_0 = {
-    setByteOrder = function(self, byteOrder)
-      _orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
-      return self
-    end,
     write = function(self, value)
       return self:_writeTagged(value)
     end,
     number = function(self, value)
-      _native.f64 = value
-      return self:u32(_native.u32[0]):u32(_native.u32[1])
+      self._native.f64 = value
+      return self:u32(self._native.u32[0]):u32(self._native.u32[1])
     end,
     bool = function(self, value)
       return self:u8(value and 1 or 0)
@@ -33,37 +29,37 @@ do
       return self
     end,
     s8 = function(self, value)
-      _native.s8[0] = value
-      return self:u8(_native.u8[0])
+      self._native.s8[0] = value
+      return self:u8(self._native.u8[0])
     end,
     u16 = function(self, value)
       local len = self._length
       if len + 2 > self._size then
         self:_grow(2)
       end
-      self._data[len], self._data[len + 1] = _orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
+      self._data[len], self._data[len + 1] = self._orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
       self._length = self._length + 2
       return self
     end,
     s16 = function(self, value)
-      _native.s16[0] = value
-      return self:u16(_native.u16[0])
+      self._native.s16[0] = value
+      return self:u16(self._native.u16[0])
     end,
     u32 = function(self, value)
       local len = self._length
       if len + 4 > self._size then
         self:_grow(4)
       end
-      local w1, w2 = _orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
-      local b1, b2 = _orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
-      local b3, b4 = _orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
+      local w1, w2 = self._orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
+      local b1, b2 = self._orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
+      local b3, b4 = self._orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
       self._data[len], self._data[len + 1], self._data[len + 2], self._data[len + 3] = b1, b2, b3, b4
       self._length = self._length + 4
       return self
     end,
     s32 = function(self, value)
-      _native.s32[0] = value
-      return self:u32(_native.u32[0])
+      self._native.s32[0] = value
+      return self:u32(self._native.u32[0])
     end,
     vu32 = function(self, value)
       if not (value < 2 ^ 32) then
@@ -98,18 +94,18 @@ do
       return self:u8(shr(band(value, 0xf8000000), 27))
     end,
     u64 = function(self, value)
-      _native.u64 = value
-      local a, b = _orderBytes(_native.u32[0], _native.u32[1])
+      self._native.u64 = value
+      local a, b = self._orderBytes(self._native.u32[0], self._native.u32[1])
       return self:u32(a):u32(b)
     end,
     s64 = function(self, value)
-      _native.s64 = value
-      local a, b = _orderBytes(_native.u32[0], _native.u32[1])
+      self._native.s64 = value
+      local a, b = self._orderBytes(self._native.u32[0], self._native.u32[1])
       return self:u32(a):u32(b)
     end,
     f32 = function(self, value)
-      _native.f32[0] = value
-      return self:u32(_native.u32[0])
+      self._native.f32[0] = value
+      return self:u32(self._native.u32[0])
     end,
     f64 = function(self, value)
       return self:number(value)
@@ -246,6 +242,10 @@ do
       end
       return 5
     end,
+    setByteOrder = function(self, byteOrder)
+      self._orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
+      return self
+    end,
     _allocate = function(self, size)
       local data
       if size > 0 then
@@ -258,7 +258,9 @@ do
       self._length = math.min(size, self._length)
     end,
     _grow = function(self, minimum)
-      minimum = minimum or 0
+      if minimum == nil then
+        minimum = 0
+      end
       local newSize = math.max(self._size + minimum, math.floor(math.max(1, self._size * 1.5) + .5))
       return self:_allocate(newSize)
     end,
@@ -288,6 +290,19 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self, byteOrder, size)
+      self._native = ffi.new([[			union {
+				  int8_t s8[8];
+				 uint8_t u8[8];
+				 int16_t s16[4];
+				uint16_t u16[4];
+				 int32_t s32[2];
+				uint32_t u32[2];
+				   float f32[2];
+				 int64_t s64;
+				uint64_t u64;
+				  double f64;
+			}
+		]])
       self._length, self._size = 0, 0
       self:setByteOrder(byteOrder)
       return self:_allocate(size or 1024)
@@ -305,19 +320,6 @@ do
   _base_0.__class = _class_0
   BlobWriter = _class_0
 end
-_native = ffi.new([[	union {
-		  int8_t s8[8];
-		 uint8_t u8[8];
-		 int16_t s16[4];
-		uint16_t u16[4];
-		 int32_t s32[2];
-		uint32_t u32[2];
-		   float f32[2];
-		 int64_t s64;
-		uint64_t u64;
-		  double f64;
-	}
-]])
 _byteOrder = {
   le = function(v1, v2)
     return v1, v2
@@ -356,12 +358,12 @@ do
     BlobWriter.vs32,
     BlobWriter.vu32,
     function(self, val)
-      _native.s64 = val
-      return self:vs32(_native.s32[0]):vs32(_native.s32[1])
+      self._native.s64 = val
+      return self:vs32(self._native.s32[0]):vs32(self._native.s32[1])
     end,
     function(self, val)
-      _native.u64 = val
-      return self:vu32(_native.u32[0]):vs32(_native.u32[1])
+      self._native.u64 = val
+      return self:vu32(self._native.u32[0]):vs32(self._native.u32[1])
     end
   }
   _arrayTypeMap = {

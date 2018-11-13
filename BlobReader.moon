@@ -2,15 +2,15 @@
 ffi = require('ffi')
 band, shr = bit.band, bit.rshift
 
-local _native, _endian, _parseByteOrder
+local _byteOrder, _parseByteOrder
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 
 --- Parses binary data from memory.
 class BlobReader
 	--- Creates a new BlobReader instance.
 	--
-	-- @tparam string|cdata data Data with which to populate the blob
-	-- @tparam[opt] string byteOrder The byte order of the data
+	-- @tparam[opt] string|cdata data Source data
+	-- @tparam[opt] string byteOrder The byte order of the data (required when data is a `cdata` pointer)
 	--
 	-- Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
 	-- host's native byte order (default)
@@ -20,19 +20,22 @@ class BlobReader
 	-- @usage reader = BlobReader(data, '>')
 	-- @usage reader = BlobReader(cdata, nil, 1000)
 	new: (data, byteOrder, size) =>
+		@_native = ffi.new[[
+			union {
+				  int8_t s8[8];
+				 uint8_t u8[8];
+				 int16_t s16[4];
+				uint16_t u16[4];
+				 int32_t s32[2];
+				uint32_t u32[2];
+				   float f32[2];
+				 int64_t s64;
+				uint64_t u64;
+				  double f64;
+			}
+		]]
 		@reset(data, size)
 		@setByteOrder(byteOrder)
-
-	--- Set source data byte order.
-	---
-	-- @tparam string byteOrder Byte order.
-	--
-	-- Can be either `le` or `<` for little endian, `be` or `>` for big endian, or `host` or `nil` for native host byte
-	-- order.
-	-- @treturn BlobReader self
-	setByteOrder: (byteOrder) =>
-		@_orderBytes = _endian[_parseByteOrder(byteOrder)]
-		@
 
 	--- Reads a `string`, a `number`, a `boolean` or a `table` from the input data.
 	--
@@ -48,8 +51,8 @@ class BlobReader
 	--
 	-- @treturn number The number read read from the input data
 	number: =>
-		_native.u32[0], _native.u32[1] = @u32!, @u32!
-		_native.f64
+		@_native.u32[0], @_native.u32[1] = @u32!, @u32!
+		@_native.f64
 
 	--- Reads a string from the input data.
 	--
@@ -97,8 +100,8 @@ class BlobReader
 	--
 	-- @treturn number The signed 8-bit value read from the input data
 	s8: =>
-		_native.u8[0] = @u8!
-		_native.s8[0]
+		@_native.u8[0] = @u8!
+		@_native.s8[0]
 
 	--- Reads one unsigned 16-bit value from the input data.
 	--
@@ -107,14 +110,14 @@ class BlobReader
 		ptr = @_readPtr
 		error("Out of data") if @_size <= ptr + 1
 		@_readPtr = ptr + 2
-		@_orderBytes._16(@_data[ptr], @_data[ptr + 1])
+		@_orderBytes._16(@, @_data[ptr], @_data[ptr + 1])
 
 	--- Reads one signed 16 bit value from the input data.
 	--
 	-- @treturn number The signed 16-bit value read from the input data
 	s16: =>
-		_native.u16[0] = @u16!
-		_native.s16[0]
+		@_native.u16[0] = @u16!
+		@_native.s16[0]
 
 	--- Reads one unsigned 32 bit value from the input data.
 	--
@@ -123,14 +126,14 @@ class BlobReader
 		ptr = @_readPtr
 		error("Out of data") if @_size <= ptr + 3
 		@_readPtr = ptr + 4
-		@_orderBytes._32(@_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3])
+		@_orderBytes._32(@, @_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3])
 
 	--- Reads one signed 32 bit value from the input data.
 	--
 	-- @treturn number The signed 32-bit value read from the input data
 	s32: =>
-		_native.u32[0] = @u32!
-		_native.s32[0]
+		@_native.u32[0] = @u32!
+		@_native.s32[0]
 
 	--- Reads one unsigned 64 bit value from the input data.
 	--
@@ -139,22 +142,22 @@ class BlobReader
 		ptr = @_readPtr
 		error("Out of data") if @_size <= ptr + 7
 		@_readPtr = ptr + 8
-		@_orderBytes._64(@_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3],
+		@_orderBytes._64(@, @_data[ptr], @_data[ptr + 1], @_data[ptr + 2], @_data[ptr + 3],
 			@_data[ptr + 4], @_data[ptr + 5], @_data[ptr + 6], @_data[ptr + 7])
 
 	--- Reads one signed 64 bit value from the input data.
 	--
 	-- @treturn number The signed 64-bit value read from the input data
 	s64: =>
-		_native.u64 = @u64!
-		_native.s64
+		@_native.u64 = @u64!
+		@_native.s64
 
 	--- Reads one 32 bit floating point value from the input data.
 	--
 	-- @treturn number The 32-bit floating point value read from the input data
 	f32: =>
-		_native.u32[0] = @u32!
-		_native.f32[0]
+		@_native.u32[0] = @u32!
+		@_native.f32[0]
 
 	--- Reads one 64 bit floating point value from the input data.
 	--
@@ -304,33 +307,46 @@ class BlobReader
 	--- Rewinds the read position to the beginning of the data.
 	--
 	-- @treturn BlobReader self
+	-- @see reset
 	rewind: =>
 		@_readPtr = 0
 		@
 
 	--- Re-initializes the reader with new data and resets the read position.
 	--
-	-- @tparam string|cdata data The data to read from
-	-- @tparam[opt] number size The length of the data
+	-- @tparam string|cdata|nil data The source data
+	-- @tparam[opt] number size The length of the data (only required when `data` is a `cdata` pointer)
 	-- @treturn BlobReader self
 	reset: (data, size) =>
-		dtype = type(data)
-		if dtype == 'string'
+		if type(data) == 'string'
 			@_allocate(#data)
 			ffi.copy(@_data, data, #data)
-		elseif dtype == 'cdata'
+		elseif type(data) == 'cdata'
 			@_size = size or ffi.sizeof(data)
 			@_data = data
+		elseif data == nil
+			@_size = 0
+			@_data = nil
 		else
 			error("Invalid data type <#{dtype}>")
 
-		@_readPtr = 0
-		@
+		@rewind!
 
 	--- Returns the current read position as an offset from the start of the input data in bytes.
 	--
 	-- @treturn number Current read position in bytes
 	position: => @_readPtr
+
+	--- Set source data byte order.
+	---
+	-- @tparam string byteOrder Byte order.
+	--
+	-- Can be either `le` or `<` for little endian, `be` or `>` for big endian, or `host` or `nil` for native host byte
+	-- order.
+	-- @treturn BlobReader self
+	setByteOrder: (byteOrder) =>
+		@_orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
+		@
 
 	-----------------------------------------------------------------------------
 
@@ -359,49 +375,34 @@ _getTag = (value) ->
 	return _tags[value] if value == true or value == false
 	_tags[type(value)]
 
-_native = ffi.new[[
-	union {
-		  int8_t s8[8];
-		 uint8_t u8[8];
-		 int16_t s16[4];
-		uint16_t u16[4];
-		 int32_t s32[2];
-		uint32_t u32[2];
-		   float f32[2];
-		 int64_t s64;
-		uint64_t u64;
-		  double f64;
-	}
-]]
-
-_endian =
+_byteOrder =
 	le:
-		_16: (b1, b2) ->
-			_native.u8[0], _native.u8[1] = b1, b2
-			_native.u16[0]
+		_16: (b1, b2) =>
+			@_native.u8[0], @_native.u8[1] = b1, b2
+			@_native.u16[0]
 
-		_32: (b1, b2, b3, b4) ->
-			_native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b1, b2, b3, b4
-			_native.u32[0]
+		_32: (b1, b2, b3, b4) =>
+			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b1, b2, b3, b4
+			@_native.u32[0]
 
-		_64: (b1, b2, b3, b4, b5, b6, b7, b8) ->
-			_native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b1, b2, b3, b4
-			_native.u8[4], _native.u8[5], _native.u8[6], _native.u8[7] = b5, b6, b7, b8
-			_native.u64
+		_64: (b1, b2, b3, b4, b5, b6, b7, b8) =>
+			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b1, b2, b3, b4
+			@_native.u8[4], @_native.u8[5], @_native.u8[6], @_native.u8[7] = b5, b6, b7, b8
+			@_native.u64
 
 	be:
-		_16: (b1, b2) ->
-			_native.u8[0], _native.u8[1] = b2, b1
-			_native.u16[0]
+		_16: (b1, b2) =>
+			@_native.u8[0], @_native.u8[1] = b2, b1
+			@_native.u16[0]
 
-		_32: (b1, b2, b3, b4) ->
-			_native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b4, b3, b2, b1
-			_native.u32[0]
+		_32: (b1, b2, b3, b4) =>
+			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b4, b3, b2, b1
+			@_native.u32[0]
 
-		_64: (b1, b2, b3, b4, b5, b6, b7, b8) ->
-			_native.u8[0], _native.u8[1], _native.u8[2], _native.u8[3] = b8, b7, b6, b5
-			_native.u8[4], _native.u8[5], _native.u8[6], _native.u8[7] = b4, b3, b2, b1
-			_native.u64
+		_64: (b1, b2, b3, b4, b5, b6, b7, b8) =>
+			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b8, b7, b6, b5
+			@_native.u8[4], @_native.u8[5], @_native.u8[6], @_native.u8[7] = b4, b3, b2, b1
+			@_native.u64
 
 _tags =
 	stop: 0
@@ -427,11 +428,11 @@ with BlobReader
 		.vs32
 		.vu32
 		=>
-			_native.s32[0], _native.s32[1] = @vs32!, @vs32!
-			_native.s64
+			@_native.s32[0], @_native.s32[1] = @vs32!, @vs32!
+			@_native.s64
 		=>
-			_native.u32[0], _native.u32[1] = @vu32!, @vu32!
-			_native.u64
+			@_native.u32[0], @_native.u32[1] = @vu32!, @vu32!
+			@_native.u64
 	}
 
 	_arrayTypeMap =
@@ -453,7 +454,6 @@ with BlobReader
 		bool:    .bool
 		table:   .table
 
-with BlobReader
 	_unpackMap =
 		b: .s8
 		B: .u8

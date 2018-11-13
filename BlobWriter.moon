@@ -2,8 +2,8 @@
 ffi = require('ffi')
 band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 
-local _native, _byteOrder, _parseByteOrder
-local _orderBytes, _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _byteOrder, _parseByteOrder
+local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 
 --- Writes binary data to memory.
 class BlobWriter
@@ -14,26 +14,30 @@ class BlobWriter
 	-- Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
 	-- host's native byteOrder (default)
 	--
-	-- @tparam[opt] number size The initial size of the blob. Default size is 1024. Will grow automatically when needed.
+	-- @tparam[opt] number size The initial size of the blob in bytes. Default is 1024. Will grow automatically when needed.
 	-- @treturn BlobWriter A new BlobWriter instance.
 	-- @usage writer = BlobWriter!
 	-- @usage writer = BlobWriter('<', 1000)
+	-- @see clear
 	new: (byteOrder, size) =>
+		@_native = ffi.new[[
+			union {
+				  int8_t s8[8];
+				 uint8_t u8[8];
+				 int16_t s16[4];
+				uint16_t u16[4];
+				 int32_t s32[2];
+				uint32_t u32[2];
+				   float f32[2];
+				 int64_t s64;
+				uint64_t u64;
+				  double f64;
+			}
+		]]
+
 		@_length, @_size = 0, 0
 		@setByteOrder(byteOrder)
 		@_allocate(size or 1024)
-
-	--- Sets the order in which multi-byte values will be written.
-	--
-	-- @tparam string byteOrder Byte order
-	--
-	-- Can be either `le` or `<` for little endian, `be` or `>` for big endian, or `host` or `nil` for native host byte
-	-- order.
-	--
-	-- @treturn BlobWriter self
-	setByteOrder: (byteOrder) =>
-		_orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
-		@
 
 	--- Writes a value to the output buffer. Determines the type of the value automatically.
 	--
@@ -47,8 +51,8 @@ class BlobWriter
 	-- @tparam number value The number to write
 	-- @treturn BlobWriter self
 	number: (value) =>
-		_native.f64 = value
-		@u32(_native.u32[0])\u32(_native.u32[1])
+		@_native.f64 = value
+		@u32(@_native.u32[0])\u32(@_native.u32[1])
 
 	--- Writes a boolean value to the output buffer.
 	--
@@ -82,8 +86,8 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	s8: (value) =>
-		_native.s8[0] = value
-		@u8(_native.u8[0])
+		@_native.s8[0] = value
+		@u8(@_native.u8[0])
 
 	--- Writes an unsigned 16 bit value to the output buffer.
 	--
@@ -92,7 +96,7 @@ class BlobWriter
 	u16: (value) =>
 		len = @_length
 		@_grow(2) if len + 2 > @_size
-		@_data[len], @_data[len + 1] = _orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
+		@_data[len], @_data[len + 1] = @._orderBytes(band(value, 2 ^ 8 - 1), shr(value, 8))
 		@_length += 2
 		@
 
@@ -101,8 +105,8 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	s16: (value) =>
-		_native.s16[0] = value
-		@u16(_native.u16[0])
+		@_native.s16[0] = value
+		@u16(@_native.u16[0])
 
 	--- Writes an unsigned 32 bit value to the output buffer.
 	--
@@ -111,9 +115,9 @@ class BlobWriter
 	u32: (value) =>
 		len = @_length
 		@_grow(4) if len + 4 > @_size
-		w1, w2 = _orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
-		b1, b2 = _orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
-		b3, b4 = _orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
+		w1, w2 = @._orderBytes(band(value, 2 ^ 16 - 1), shr(value, 16))
+		b1, b2 = @._orderBytes(band(w1, 2 ^ 8 - 1), shr(w1, 8))
+		b3, b4 = @._orderBytes(band(w2, 2 ^ 8 - 1), shr(w2, 8))
 		@_data[len], @_data[len + 1], @_data[len + 2], @_data[len + 3] = b1, b2, b3, b4
 		@_length += 4
 		@
@@ -123,8 +127,8 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	s32: (value) =>
-		_native.s32[0] = value
-		@u32(_native.u32[0])
+		@_native.s32[0] = value
+		@u32(@_native.u32[0])
 
 	--- Writes a length-encoded unsigned 32 bit integer value.
 	--
@@ -195,8 +199,8 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	u64: (value) =>
-		_native.u64 = value
-		a, b = _orderBytes(_native.u32[0], _native.u32[1])
+		@_native.u64 = value
+		a, b = @._orderBytes(@_native.u32[0], @_native.u32[1])
 		@u32(a)\u32(b)
 
 	--- Writes a signed 64 bit value to the output buffer.
@@ -205,8 +209,8 @@ class BlobWriter
 	-- @treturn BlobWriter self
 	-- @see BlobWriter:u64
 	s64: (value) =>
-		_native.s64 = value
-		a, b = _orderBytes(_native.u32[0], _native.u32[1])
+		@_native.s64 = value
+		a, b = @._orderBytes(@_native.u32[0], @_native.u32[1])
 		@u32(a)\u32(b)
 
 	--- Writes a 32 bit floating point value to the output buffer.
@@ -214,8 +218,8 @@ class BlobWriter
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	f32: (value) =>
-		_native.f32[0] = value
-		@u32(_native.u32[0])
+		@_native.f32[0] = value
+		@u32(@_native.u32[0])
 
 	--- Writes a 64 bit floating point value to the output buffer.
 	---
@@ -394,6 +398,18 @@ class BlobWriter
 		return 4 if value < 2 ^ 28
 		5
 
+	--- Sets the order in which multi-byte values will be written.
+	--
+	-- @tparam string byteOrder Byte order
+	--
+	-- Can be either `le` or `<` for little endian, `be` or `>` for big endian, or `host` or `nil` for native host byte
+	-- order.
+	--
+	-- @treturn BlobWriter self
+	setByteOrder: (byteOrder) =>
+		@_orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
+		@
+
 	------------------------------------------------------------------------------------------------------
 
 	_allocate: (size) =>
@@ -404,8 +420,7 @@ class BlobWriter
 		@_data, @_size = data, size
 		@_length = math.min(size, @_length)
 
-	_grow: (minimum) =>
-		minimum = minimum or 0
+	_grow: (minimum = 0) =>
 		newSize = math.max(@_size + minimum, math.floor(math.max(1, @_size * 1.5) + .5))
 		@_allocate(newSize)
 
@@ -427,21 +442,6 @@ class BlobWriter
 		@u8(tag)
 
 		_taggedWriters[tag](@, value, stack)
-
-_native = ffi.new[[
-	union {
-		  int8_t s8[8];
-		 uint8_t u8[8];
-		 int16_t s16[4];
-		uint16_t u16[4];
-		 int32_t s32[2];
-		uint32_t u32[2];
-		   float f32[2];
-		 int64_t s64;
-		uint64_t u64;
-		  double f64;
-	}
-]]
 
 _byteOrder =
 	le: (v1, v2) -> v1, v2
@@ -471,11 +471,11 @@ with BlobWriter
 		.vs32
 		.vu32
 		(val) =>
-			_native.s64 = val
-			@vs32(_native.s32[0])\vs32(_native.s32[1])
+			@_native.s64 = val
+			@vs32(@_native.s32[0])\vs32(@_native.s32[1])
 		(val) =>
-			_native.u64 = val
-			@vu32(_native.u32[0])\vs32(_native.u32[1])
+			@_native.u64 = val
+			@vu32(@_native.u32[0])\vs32(@_native.u32[1])
 	}
 
 	_arrayTypeMap =
