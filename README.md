@@ -154,23 +154,23 @@ Source code for benchmarks can be found in the `test` directory.
 
 --- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
 --- | --- | --- | --- | --- | --- | --- | 
-BlobWriter | **993** | **1,663** | **5,751** | **482,095** | **469,810** | **881,105** | 
-bitser | 418 | 132 | 149 | 387,260 | 34,092 | 38,611 | 
-binser | 484 | 31 | 33 | 236,147 | 13,511 | 16,956 | 
+Blob | **1,007** | **1,695** | **5,908** | **490,782** | **460,424** | **880,942** | 
+bitser | 422 | 179 | 191 | 313,985 | 43,573 | 52,559 | 
+binser | 478 | 32 | 32 | 231,066 | 13,192 | 16,734 | 
 
 #### Deserialization speed (ops/sec, larger is better)
 
 --- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
 --- | --- | --- | --- | --- | --- | --- | 
-BlobReader | 2,008 | **559** | **1,040** | 571,564 | 128,168 | **336,596** | 
-bitser | 692 | 43 | 29 | 396,088 | 13,018 | 32726 | 
-binser | **2,486** | 501 | 481 | **675,342** | **151,520** | 211,834 | 
+Blob | **2,052** | **555** | **1,103** | **576,510** | **130,497** | **324,381** | 
+bitser | 1,880 | 300 | 40 | 543,913 | 95,137 | 100,232 | 
+binser | 1,371 | 83 | 77 | 375,935 | 29,017 | 50,566 | 
 
 #### Serialization size (bytes, smaller is better)
 
 --- | deepTable | largeNumArray | largeU32Array | simpleTable | smallNumArray | smallU8Array
 --- | --- | --- | --- | --- | --- | --- | 
-BlobWriter | 45,808 | 524,291 | **262147** | 69 | 2,042 | **258** | 
+BlobWriter | 45,808 | 524,291 | **262,147** | 69 | 2,042 | **258** | 
 bitser | **25,732** | **393,025** | 404,089 | **62** | 1,338 | 571 | 
 binser | 25,837 | 532,398 | 589,195 | 69 | **1,310** | 415 | 
 

@@ -2,7 +2,7 @@ assert(love, "Run main.lua with LÖVE >= 11")
 package.moonpath = "#{package.moonpath};../?.moon" -- grab BlobWriter/Reader from parent directory
 
 gfx, timer, fs = love.graphics, love.timer.getTime, love.filesystem
-BENCHMARK_TIME = .1 -- approx. number of seconds each benchmark runs
+BENCHMARK_TIME = 1 -- approx. number of seconds each benchmark runs
 
 tests =
 	largeNumArray: -> [ i * .5 for i = 1, 2 ^ 16 ]
@@ -118,7 +118,7 @@ runBenchmarks = ->
 			line = lib.description .. " | "
 			for test in *testNames
 				results = lib.results[test][part]
-				line = line .. (math.floor(#results.data / results.time + .5)) .. " | "
+				line = line .. (math.floor(results.count / results.time + .5)) .. " | "
 			output[#output + 1] = line
 		print(table.concat(output, '\n'))
 
