@@ -13,9 +13,9 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 	-- Load data from file
 	file = io.open('filename.ext', 'rb')
 	blob = BlobReader(file:read('*all'))
-	file:close!
+	file:close()
 
-	-- Parse binary data
+	-- Parse raw binary data
 	u8 = blob:u8()
 	s16 = blob:s16()
 	str = blob:cstring()
@@ -34,7 +34,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 	blob = BlobWriter()
 
-	-- Store binary data
+	-- Store raw binary data
 	blob
 		:u8(23)
 		:number(123.45)
@@ -108,7 +108,7 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 
 ## Documentation
 
-[API documentation](https://megagrump.github.io/moonblob/doc/)
+[API reference](https://megagrump.github.io/moonblob/doc/)
 
 ### Reading and writing Lua types
 
@@ -140,7 +140,7 @@ A low level interface is provided for handling arbitrary binary data.
 	cstring      -- zero-terminated string
 	array        -- sequential table of typed values
 
-To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader\unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API documentation](https://megagrump.github.io/moonblob/doc) for details.
+To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader\unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API reference](https://megagrump.github.io/moonblob/doc) for details.
 
 ### Benchmark results
 
