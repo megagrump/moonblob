@@ -70,19 +70,19 @@ body {
     background-color: #ffffff; margin: 0px;
 }
 
-code, tt, span.parameter { font-family: monospace; font-size: 1.1em; background-color: #f0f0f0; padding: 0px 4px; }
+code, tt, span.parameter { font-family: monospace; font-size: 1.1em; border: solid 1px #ccc; background-color: #eee; padding: 1px 0.5em; }
 span.parameter:after { content:""; }
 span.types:before { content:"("; }
 span.types:after { content:"):"; }
 .type { font-weight: bold; font-style:italic }
 
-body, p, td, th { font-size: .95em; line-height: 1.2em;}
+body, p, td, th { font-size: .95em; line-height: 1.25em;}
 
 p, ul { margin: 10px 0 0 0px;}
 
 strong { font-weight: bold;}
 
-em { font-style: italic; font-size: 0.75em; }
+em {  font-size: 0.75em; border: solid 1px #8ce; background-color: #7cf; padding: 1px 0.5em; }
 
 h1 {
     font-size: 1.5em;

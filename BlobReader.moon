@@ -10,16 +10,18 @@ class BlobReader
 	--- Creates a new BlobReader instance.
 	--
 	-- @tparam[opt] string|cdata data Source data
-	-- @tparam[opt] string byteOrder The byte order of the data (required when data is a `cdata` pointer)
+	-- @tparam[opt] number|string sizeOrByteOrder Size of `data` (required when data is a `cdata` pointer) or
+	-- the byte order of the data
 	--
-	-- Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
+	-- **Byte order**: Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
 	-- host's native byte order (default)
-	-- @tparam[opt] number size When data is of type `cdata`, you need to pass the size manually
+	--
+	-- @tparam[opt] number size Size of `data` (required when `data` is a `cdata` pointer)
 	-- @treturn BlobReader A new BlobReader instance.
 	-- @usage reader = BlobReader(data)
 	-- @usage reader = BlobReader(data, '>')
-	-- @usage reader = BlobReader(cdata, nil, 1000)
-	new: (data, byteOrder, size) =>
+	-- @usage reader = BlobReader(cdata, 1000)
+	new: (data, sizeOrByteOrder, size) =>
 		@_native = ffi.new[[
 			union {
 				  int8_t s8[8];
@@ -34,6 +36,9 @@ class BlobReader
 				  double f64;
 			}
 		]]
+
+		byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
+		size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
 		@reset(data, size)
 		@setByteOrder(byteOrder)
 

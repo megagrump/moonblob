@@ -289,7 +289,7 @@ do
   }
   _base_0.__index = _base_0
   _class_0 = setmetatable({
-    __init = function(self, byteOrder, size)
+    __init = function(self, sizeOrByteOrder, size)
       self._native = ffi.new([[			union {
 				  int8_t s8[8];
 				 uint8_t u8[8];
@@ -303,6 +303,8 @@ do
 				  double f64;
 			}
 		]])
+      local byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
+      size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
       self._length, self._size = 0, 0
       self:setByteOrder(byteOrder)
       return self:_allocate(size or 1024)

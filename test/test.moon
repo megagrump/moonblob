@@ -13,13 +13,12 @@ equals, almost, isTrue, isError = lu.assertEquals, lu.assertAlmostEquals, lu.ass
 export *
 
 test_Error = ->
-	isError('Invalid data type', BlobReader, 1)
 	isError('Invalid data type', BlobReader, true)
 	isError('Invalid data type', BlobReader, {})
 	isError('Invalid data type', BlobReader, ->)
 
 test_Writer_tiny = ->
-	b = BlobWriter(nil, 1)
+	b = BlobWriter(1)
 	b\u32(0xbeefc0de)
 	isTrue(b\length! <= b\size!)
 
@@ -39,7 +38,7 @@ test_CData = ->
 	data = ffi.new('uint8_t[256]')
 	data[i] = i for i = 0, 255
 
-	blob = BlobWriter(nil, 257)
+	blob = BlobWriter(257)
 	blob\raw(data, 256)
 	blob\u8(123)
 
@@ -50,7 +49,7 @@ test_CData = ->
 	equals(reader\position!, blob\length!)
 
 	data = ffi.cast('uint8_t*', data)
-	blob2 = BlobReader(data, nil, 256)
+	blob2 = BlobReader(data, 256)
 	equals(blob2\size!, 256)
 	equals(blob2\u8!, i) for i = 0, 255
 
@@ -591,7 +590,7 @@ test_xxxLastCheckGlobals = ->
 			isTrue(_globals[k] ~= nil)
 
 test_Writer_clear = ->
-	b = BlobWriter(nil, 1)
+	b = BlobWriter(1)
 	b\u8(1)
 	b\clear!
 	equals(b\size!, 1)

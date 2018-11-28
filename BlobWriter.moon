@@ -9,17 +9,18 @@ local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arr
 class BlobWriter
 	--- Creates a new BlobWriter instance.
 	--
-	-- @tparam[opt] string byteOrder Byte order
+	-- @tparam[opt] number|string sizeOrByteOrder Size or byte order
 	--
-	-- Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
+	-- **Byte order**: Use `le` or `<` for little endian; `be` or `>` for big endian; `host`, `=` or `nil` to use the
 	-- host's native byteOrder (default)
 	--
-	-- @tparam[opt] number size The initial size of the blob in bytes. Default is 1024. Will grow automatically when needed.
+	-- @tparam[opt] number size The initial size of the blob in bytes. Default is 1024. Will grow automatically when
+	-- required.
 	-- @treturn BlobWriter A new BlobWriter instance.
 	-- @usage writer = BlobWriter!
 	-- @usage writer = BlobWriter('<', 1000)
 	-- @see clear
-	new: (byteOrder, size) =>
+	new: (sizeOrByteOrder, size) =>
 		@_native = ffi.new[[
 			union {
 				  int8_t s8[8];
@@ -35,6 +36,8 @@ class BlobWriter
 			}
 		]]
 
+		byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
+		size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
 		@_length, @_size = 0, 0
 		@setByteOrder(byteOrder)
 		@_allocate(size or 1024)
