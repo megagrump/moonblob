@@ -172,6 +172,8 @@ Source code for benchmarks can be found in the `test` directory.
 
 ### Compatibility
 
+The library was developed on and for x86 and x64 machines - other architectures are currently untested.
+
 Since moonblob uses the ffi library and C data types, it is not compatible with vanilla Lua and can only be used with LuaJIT.
 
 ### License
