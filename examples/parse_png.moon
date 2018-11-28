@@ -1,7 +1,7 @@
 -- Blob.lua example: parse binary data with raw i/o functions
 -- This example shows how to use Blob.lua to parse arbitrary binary files
 -- run with luajit <path to moon> file.moon
-package.moonpath = "#{package.moonpath];../?.moon"
+package.moonpath = "#{package.moonpath};../?.moon"
 BlobReader = require('BlobReader')
 import format from string
 

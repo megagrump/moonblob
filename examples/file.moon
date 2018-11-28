@@ -1,6 +1,6 @@
 -- Blob example: save and load data to/from file
 -- run with luajit <path to moon> file.moon
-package.moonpath = "#{package.moonpath];../?.moon"
+package.moonpath = "#{package.moonpath};../?.moon"
 BlobReader, BlobWriter = require('BlobReader'), require('BlobWriter')
 
 projectInfo =

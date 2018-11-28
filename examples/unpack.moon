@@ -1,7 +1,7 @@
 -- BlobReader example: parse binary data via Blob\unpack
 -- This example shows how to use Blob\unpack to parse arbitrary binary files
 -- run with luajit <path to moon> file.moon
-package.moonpath = "#{package.moonpath];../?.moon"
+package.moonpath = "#{package.moonpath};../?.moon"
 BlobReader = require('BlobReader')
 import format from string
 
