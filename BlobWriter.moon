@@ -139,13 +139,13 @@ class BlobWriter
 	--
 	-- Space requirements:
 	--
-	--     | lower bound | upper bound | # bytes |
-	--     |-------------|-------------|---------|
-	--     |           0 |         127 |    1    |
-	--     |         128 |       16383 |    2    |
-	--     |       16384 |     2097151 |    3    |
-	--     |     2097151 |   268435455 |    4    |
-	--     |   268435456 |  4294967295 |    5    |
+	-- | lower bound | upper bound | # bytes |
+	-- |------------:|------------:|:-------:|
+	-- |           0 |         127 |    1    |
+	-- |         128 |       16383 |    2    |
+	-- |       16384 |     2097151 |    3    |
+	-- |     2097151 |   268435455 |    4    |
+	-- |   268435456 |  4294967295 |    5    |
 	--
 	-- @{vu32size} computes the space requirement for an unsigned integer value.
 	-- @tparam number value The unsigned integer value to write
@@ -165,17 +165,18 @@ class BlobWriter
 	-- The value is written in an encoded format. The length depends on the value; larger values need more space.
 	--
 	-- Space requirements:
-	-- 	| lower bound | upper bound | # bytes |
-	-- 	|-------------|-------------|---------|
-	-- 	| -2147483648 |  -268435455 |    5    |
-	-- 	|  -268435454 |    -2097151 |    4    |
-	-- 	|   -2097150  |      -16383 |    3    |
-	-- 	|     -16382  |        -127 |    2    |
-	-- 	|       -126  |         126 |    1    |
-	-- 	|        127  |       16382 |    2    |
-	-- 	|      16383  |     2097150 |    3    |
-	-- 	|    2097151  |   268435454 |    4    |
-	-- 	|  268435455  |  2147483647 |    5    |
+	--
+	-- | lower bound | upper bound | # bytes |
+	-- |------------:|------------:|:-------:|
+	-- | -2147483648 |  -268435455 |    5    |
+	-- |  -268435454 |    -2097151 |    4    |
+	-- |   -2097150  |      -16383 |    3    |
+	-- |     -16382  |        -127 |    2    |
+	-- |       -126  |         126 |    1    |
+	-- |        127  |       16382 |    2    |
+	-- |      16383  |     2097150 |    3    |
+	-- |    2097151  |   268435454 |    4    |
+	-- |  268435455  |  2147483647 |    5    |
 	--
 	-- @{vs32size} computes the space requirement for a signed integer value.
 	-- @tparam number value The signed integer value to write
@@ -233,7 +234,7 @@ class BlobWriter
 	--- Writes raw binary data to the output buffer.
 	--
 	-- @tparam string|cdata value A `string` or `cdata` with the data to write
-	-- @tparam[opt] number length Length of data (not required when data is a string)
+	-- @tparam[opt] number length Length of data (not required when `value` is a string)
 	-- @treturn BlobWriter self
 	raw: (value, length) =>
 		length = length or #value

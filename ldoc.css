@@ -16,6 +16,16 @@ body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input
 table {
     border-collapse: collapse;
     border-spacing: 0;
+    border: solid 1px #ccc;
+    margin-top: 1em;
+}
+th,td {
+    border: solid 1px #ccc;
+    padding: 0.25em;
+}
+th {
+    font-weight: bold !important;
+    background-color: #eee;
 }
 fieldset,img {
     border: 0;
@@ -82,7 +92,7 @@ p, ul { margin: 10px 0 0 0px;}
 
 strong { font-weight: bold;}
 
-em {  font-size: 0.75em; border: solid 1px #8ce; background-color: #7cf; padding: 1px 0.5em; }
+em {  font-size: 0.75em; border: solid 1px #7ce; background-color: #cef; padding: 1px 0.5em; }
 
 h1 {
     font-size: 1.5em;

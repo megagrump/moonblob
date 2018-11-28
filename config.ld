@@ -4,7 +4,7 @@ file = {
 }
 
 backtick_references = false
-format = 'markdown'
+format = 'discount'
 project = 'moonblob'
 title = 'moonblob API documentation'
 kind_names = { module = 'Classes' }
