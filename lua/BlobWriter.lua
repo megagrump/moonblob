@@ -421,9 +421,9 @@ _parseByteOrder = function(endian)
   local _exp_0 = endian
   if nil == _exp_0 or '=' == _exp_0 or 'host' == _exp_0 then
     endian = ffi.abi('le') and 'le' or 'be'
-  elseif '<' == _exp_0 then
+  elseif '<' == _exp_0 or 'le' == _exp_0 then
     endian = 'le'
-  elseif '>' == _exp_0 then
+  elseif '>' == _exp_0 or 'be' == _exp_0 then
     endian = 'be'
   else
     error("Invalid byteOrder identifier: " .. tostring(endian))

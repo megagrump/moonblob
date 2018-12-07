@@ -23,7 +23,7 @@ test_Writer_tiny = ->
 	isTrue(b\length! <= b\size!)
 
 test_Writer_signed = ->
-	for _, endian in ipairs({ '<', '>', '=' })
+	for _, endian in ipairs({ 'le', 'be', 'host' })
 		w = BlobWriter(endian)
 		w\s8(i)\s16(i)\s32(i)\s64(i) for i = -128, 127
 

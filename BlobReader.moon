@@ -368,9 +368,9 @@ _parseByteOrder = (endian) ->
 	switch endian
 		when nil, '=', 'host'
 			endian = ffi.abi('le') and 'le' or 'be'
-		when '<'
+		when '<', 'le'
 			endian = 'le'
-		when '>'
+		when '>', 'be'
 			endian = 'be'
 		else
 			error("Invalid byteOrder identifier: #{endian}")
