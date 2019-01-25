@@ -428,18 +428,19 @@ class BlobWriter
 		newSize = math.max(@_size + minimum, math.floor(math.max(1, @_size * 1.5) + .5))
 		@_allocate(newSize)
 
-	_writeTable: (t, stack) =>
-		stack = stack or {}
+	_writeTable: (t, stack = {}) =>
 		error("Cycle detected; can't serialize table") if stack[t]
 
 		stack[t] = true
-		for key, value in pairs(t)
-			continue if type(value) == 'function'
-			@_writeTagged(key, stack)
-			@_writeTagged(value, stack)
+		@_writeTaggedPair(key, value, stack) for key, value in pairs(t)
 		stack[t] = nil
 
 		@u8(_tags.stop)
+
+	_writeTaggedPair: (key, value, stack) =>
+		return @ if type(value) == 'function'
+		@_writeTagged(key, stack)
+		@_writeTagged(value, stack)
 
 	_writeTagged: (value, stack) =>
 		tag = _getTag(value)

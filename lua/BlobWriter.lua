@@ -265,28 +265,25 @@ do
       return self:_allocate(newSize)
     end,
     _writeTable = function(self, t, stack)
-      stack = stack or { }
+      if stack == nil then
+        stack = { }
+      end
       if stack[t] then
         error("Cycle detected; can't serialize table")
       end
       stack[t] = true
       for key, value in pairs(t) do
-        local _continue_0 = false
-        repeat
-          if type(value) == 'function' then
-            _continue_0 = true
-            break
-          end
-          self:_writeTagged(key, stack)
-          self:_writeTagged(value, stack)
-          _continue_0 = true
-        until true
-        if not _continue_0 then
-          break
-        end
+        self:_writeTaggedPair(key, value, stack)
       end
       stack[t] = nil
       return self:u8(_tags.stop)
+    end,
+    _writeTaggedPair = function(self, key, value, stack)
+      if type(value) == 'function' then
+        return self
+      end
+      self:_writeTagged(key, stack)
+      return self:_writeTagged(value, stack)
     end,
     _writeTagged = function(self, value, stack)
       local tag = _getTag(value)
