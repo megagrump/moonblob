@@ -604,4 +604,16 @@ test_table_with_nil = ->
 	rt = BlobReader(d)\read!
 	equals(wt, rt)
 
+test_table_with_functions = ->
+	wt = {
+		a: 1
+		b: -> 2
+	}
+	w = BlobWriter!
+	w\table(wt)
+
+	rt = BlobReader(w\tostring!)\table!
+	equals(wt.a, rt.a)
+	equals(rt.b, nil)
+
 lu.LuaUnit.new!\runSuite!

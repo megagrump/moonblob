@@ -252,7 +252,7 @@ class BlobWriter
 
 	--- Writes a table to the output buffer.
 	--
-	-- Supported field types are number, string, bool and table. Cyclic references throw an error.
+	-- Supported field types are number, string, bool and table. Functions are ignored. Cyclic references throw an error.
 	-- @tparam table value The table to write
 	-- @treturn BlobWriter self
 	table: (value) => @_writeTable(value, {})
@@ -429,11 +429,12 @@ class BlobWriter
 		@_allocate(newSize)
 
 	_writeTable: (t, stack) =>
-		stack, ttype = stack or {}, type(t)
+		stack = stack or {}
 		error("Cycle detected; can't serialize table") if stack[t]
 
 		stack[t] = true
 		for key, value in pairs(t)
+			continue if type(value) == 'function'
 			@_writeTagged(key, stack)
 			@_writeTagged(value, stack)
 		stack[t] = nil
@@ -474,10 +475,10 @@ with BlobWriter
 		=> @ -- 0
 		.vs32
 		.vu32
-		(val) =>
+		(val) => -- vs64
 			@_native.s64 = val
 			@vs32(@_native.s32[0])\vs32(@_native.s32[1])
-		(val) =>
+		(val) => -- vu64
 			@_native.u64 = val
 			@vu32(@_native.u32[0])\vs32(@_native.u32[1])
 	}
