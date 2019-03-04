@@ -443,13 +443,13 @@ _getTag = function(value)
   if 'boolean' == _exp_0 then
     return _tags[value]
   elseif 'number' == _exp_0 then
-    if value == 0 then
-      return _tags.zero
-    end
     if math.floor(value) ~= value then
       return _tags.number
     end
-    if value >= 0 then
+    if value == 0 then
+      return _tags.zero
+    end
+    if value > 0 then
       if value < 2 ^ 32 then
         return _tags.vu32
       end

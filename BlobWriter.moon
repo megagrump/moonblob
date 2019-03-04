@@ -544,9 +544,9 @@ _getTag = (value) ->
 		when 'boolean'
 			return _tags[value]
 		when 'number'
-			return _tags.zero if value == 0
 			return _tags.number if math.floor(value) ~= value
-			if value >= 0
+			return _tags.zero if value == 0
+			if value > 0
 				return _tags.vu32 if value < 2 ^ 32
 				return _tags.vu64
 			return _tags.vs32 if value >= -2 ^ 31

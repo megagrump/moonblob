@@ -229,8 +229,7 @@ do
       return self._size
     end,
     rewind = function(self)
-      self._readPtr = 0
-      return self
+      return self:seek(0)
     end,
     reset = function(self, data, size)
       if type(data) == 'string' then
@@ -246,6 +245,13 @@ do
         error("Invalid data type <" .. tostring(dtype) .. ">")
       end
       return self:rewind()
+    end,
+    seek = function(self, pos)
+      if pos > self._size then
+        error("Out of data")
+      end
+      self._readPtr = pos
+      return self
     end,
     position = function(self)
       return self._readPtr

@@ -616,4 +616,23 @@ test_table_with_functions = ->
 	equals(wt.a, rt.a)
 	equals(rt.b, nil)
 
+test_seek = ->
+	w = BlobWriter!
+	w\u16(9)
+	w\raw('garbage')
+	w\string('hello')
+
+	r = BlobReader(w\tostring!)
+	r\seek(r\u16!)
+	s = r\string!
+	equals(s, 'hello')
+
+	r\rewind!
+	o = r\u16!
+	s = r\raw(7)
+	equals(s, 'garbage')
+
+	isError("Out of data", BlobReader.seek, r, 1000)
+	isError("Invalid read position", BlobReader.seek, r, -1)
+
 lu.LuaUnit.new!\runSuite!
