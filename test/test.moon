@@ -632,4 +632,7 @@ test_seek = ->
 	s = r\raw(7)
 	equals(s, 'garbage')
 
+	isError("Out of data", BlobReader.seek, r, 1000)
+	isError("Invalid read position", BlobReader.seek, r, -1)
+
 lu.LuaUnit.new!\runSuite!
