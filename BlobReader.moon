@@ -343,6 +343,7 @@ class BlobReader
 	-- @treturn BlobReader self
 	seek: (pos) =>
 		error("Out of data") if pos > @_size
+		error("Invalid read position") if pos < 0
 		@_readPtr = pos
 		@
 
