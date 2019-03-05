@@ -1,6 +1,6 @@
 local ffi = require('ffi')
 local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
-local _byteOrder, _parseByteOrder
+local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 local BlobWriter
 do
@@ -10,8 +10,8 @@ do
       return self:_writeTagged(value)
     end,
     number = function(self, value)
-      self._native.f64 = value
-      return self:u32(self._native.u32[0]):u32(self._native.u32[1])
+      self._union.f64 = value
+      return self:u32(self._union.u32[0]):u32(self._union.u32[1])
     end,
     bool = function(self, value)
       return self:u8(value and 1 or 0)
@@ -29,8 +29,8 @@ do
       return self
     end,
     s8 = function(self, value)
-      self._native.s8[0] = value
-      return self:u8(self._native.u8[0])
+      self._union.s8[0] = value
+      return self:u8(self._union.u8[0])
     end,
     u16 = function(self, value)
       local len = self._length
@@ -42,8 +42,8 @@ do
       return self
     end,
     s16 = function(self, value)
-      self._native.s16[0] = value
-      return self:u16(self._native.u16[0])
+      self._union.s16[0] = value
+      return self:u16(self._union.u16[0])
     end,
     u32 = function(self, value)
       local len = self._length
@@ -58,8 +58,8 @@ do
       return self
     end,
     s32 = function(self, value)
-      self._native.s32[0] = value
-      return self:u32(self._native.u32[0])
+      self._union.s32[0] = value
+      return self:u32(self._union.u32[0])
     end,
     vu32 = function(self, value)
       if not (value < 2 ^ 32) then
@@ -94,18 +94,18 @@ do
       return self:u8(shr(band(value, 0xf8000000), 27))
     end,
     u64 = function(self, value)
-      self._native.u64 = value
-      local a, b = self._orderBytes(self._native.u32[0], self._native.u32[1])
+      self._union.u64 = value
+      local a, b = self._orderBytes(self._union.u32[0], self._union.u32[1])
       return self:u32(a):u32(b)
     end,
     s64 = function(self, value)
-      self._native.s64 = value
-      local a, b = self._orderBytes(self._native.u32[0], self._native.u32[1])
+      self._union.s64 = value
+      local a, b = self._orderBytes(self._union.u32[0], self._union.u32[1])
       return self:u32(a):u32(b)
     end,
     f32 = function(self, value)
-      self._native.f32[0] = value
-      return self:u32(self._native.u32[0])
+      self._union.f32[0] = value
+      return self:u32(self._union.u32[0])
     end,
     f64 = function(self, value)
       return self:number(value)
@@ -297,22 +297,10 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self, sizeOrByteOrder, size)
-      self._native = ffi.new([[			union {
-				  int8_t s8[8];
-				 uint8_t u8[8];
-				 int16_t s16[4];
-				uint16_t u16[4];
-				 int32_t s32[2];
-				uint32_t u32[2];
-				   float f32[2];
-				 int64_t s64;
-				uint64_t u64;
-				  double f64;
-			}
-		]])
+      self._union = _Union()
+      self._length, self._size = 0, 0
       local byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
       size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
-      self._length, self._size = 0, 0
       self:setByteOrder(byteOrder)
       return self:_allocate(size or 1024)
     end,
@@ -367,12 +355,12 @@ do
     BlobWriter.vs32,
     BlobWriter.vu32,
     function(self, val)
-      self._native.s64 = val
-      return self:vs32(self._native.s32[0]):vs32(self._native.s32[1])
+      self._union.s64 = val
+      return self:vs32(self._union.s32[0]):vs32(self._union.s32[1])
     end,
     function(self, val)
-      self._native.u64 = val
-      return self:vu32(self._native.u32[0]):vs32(self._native.u32[1])
+      self._union.u64 = val
+      return self:vu32(self._union.u32[0]):vs32(self._union.u32[1])
     end
   }
   _arrayTypeMap = {
@@ -462,4 +450,16 @@ _getTag = function(value)
   end
   return _tags[t]
 end
+_Union = ffi.typeof([[	union {
+		  int8_t s8[8];
+		 uint8_t u8[8];
+		 int16_t s16[4];
+		uint16_t u16[4];
+		 int32_t s32[2];
+		uint32_t u32[2];
+		   float f32[2];
+		 int64_t s64;
+		uint64_t u64;
+		  double f64;
+}]])
 return BlobWriter

@@ -1,6 +1,6 @@
 local ffi = require('ffi')
 local band, shr = bit.band, bit.rshift
-local _byteOrder, _parseByteOrder
+local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 local BlobReader
 do
@@ -11,8 +11,8 @@ do
       return value
     end,
     number = function(self)
-      self._native.u32[0], self._native.u32[1] = self:u32(), self:u32()
-      return self._native.f64
+      self._union.u32[0], self._union.u32[1] = self:u32(), self:u32()
+      return self._union.f64
     end,
     string = function(self)
       local len, ptr = self:vu32(), self._readPtr
@@ -45,8 +45,8 @@ do
       return u8
     end,
     s8 = function(self)
-      self._native.u8[0] = self:u8()
-      return self._native.s8[0]
+      self._union.u8[0] = self:u8()
+      return self._union.s8[0]
     end,
     u16 = function(self)
       local ptr = self._readPtr
@@ -57,8 +57,8 @@ do
       return self._orderBytes._16(self, self._data[ptr], self._data[ptr + 1])
     end,
     s16 = function(self)
-      self._native.u16[0] = self:u16()
-      return self._native.s16[0]
+      self._union.u16[0] = self:u16()
+      return self._union.s16[0]
     end,
     u32 = function(self)
       local ptr = self._readPtr
@@ -69,8 +69,8 @@ do
       return self._orderBytes._32(self, self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3])
     end,
     s32 = function(self)
-      self._native.u32[0] = self:u32()
-      return self._native.s32[0]
+      self._union.u32[0] = self:u32()
+      return self._union.s32[0]
     end,
     u64 = function(self)
       local ptr = self._readPtr
@@ -81,12 +81,12 @@ do
       return self._orderBytes._64(self, self._data[ptr], self._data[ptr + 1], self._data[ptr + 2], self._data[ptr + 3], self._data[ptr + 4], self._data[ptr + 5], self._data[ptr + 6], self._data[ptr + 7])
     end,
     s64 = function(self)
-      self._native.u64 = self:u64()
-      return self._native.s64
+      self._union.u64 = self:u64()
+      return self._union.s64
     end,
     f32 = function(self)
-      self._native.u32[0] = self:u32()
-      return self._native.f32[0]
+      self._union.u32[0] = self:u32()
+      return self._union.f32[0]
     end,
     f64 = function(self)
       return self:number()
@@ -250,6 +250,9 @@ do
       if pos > self._size then
         error("Out of data")
       end
+      if pos < 0 then
+        error("Invalid read position")
+      end
       self._readPtr = pos
       return self
     end,
@@ -275,19 +278,7 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self, data, sizeOrByteOrder, size)
-      self._native = ffi.new([[			union {
-				  int8_t s8[8];
-				 uint8_t u8[8];
-				 int16_t s16[4];
-				uint16_t u16[4];
-				 int32_t s32[2];
-				uint32_t u32[2];
-				   float f32[2];
-				 int64_t s64;
-				uint64_t u64;
-				  double f64;
-			}
-		]])
+      self._union = _Union()
       local byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
       size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
       self:reset(data, size)
@@ -328,32 +319,32 @@ end
 _byteOrder = {
   le = {
     _16 = function(self, b1, b2)
-      self._native.u8[0], self._native.u8[1] = b1, b2
-      return self._native.u16[0]
+      self._union.u8[0], self._union.u8[1] = b1, b2
+      return self._union.u16[0]
     end,
     _32 = function(self, b1, b2, b3, b4)
-      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b1, b2, b3, b4
-      return self._native.u32[0]
+      self._union.u8[0], self._union.u8[1], self._union.u8[2], self._union.u8[3] = b1, b2, b3, b4
+      return self._union.u32[0]
     end,
     _64 = function(self, b1, b2, b3, b4, b5, b6, b7, b8)
-      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b1, b2, b3, b4
-      self._native.u8[4], self._native.u8[5], self._native.u8[6], self._native.u8[7] = b5, b6, b7, b8
-      return self._native.u64
+      self._union.u8[0], self._union.u8[1], self._union.u8[2], self._union.u8[3] = b1, b2, b3, b4
+      self._union.u8[4], self._union.u8[5], self._union.u8[6], self._union.u8[7] = b5, b6, b7, b8
+      return self._union.u64
     end
   },
   be = {
     _16 = function(self, b1, b2)
-      self._native.u8[0], self._native.u8[1] = b2, b1
-      return self._native.u16[0]
+      self._union.u8[0], self._union.u8[1] = b2, b1
+      return self._union.u16[0]
     end,
     _32 = function(self, b1, b2, b3, b4)
-      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b4, b3, b2, b1
-      return self._native.u32[0]
+      self._union.u8[0], self._union.u8[1], self._union.u8[2], self._union.u8[3] = b4, b3, b2, b1
+      return self._union.u32[0]
     end,
     _64 = function(self, b1, b2, b3, b4, b5, b6, b7, b8)
-      self._native.u8[0], self._native.u8[1], self._native.u8[2], self._native.u8[3] = b8, b7, b6, b5
-      self._native.u8[4], self._native.u8[5], self._native.u8[6], self._native.u8[7] = b4, b3, b2, b1
-      return self._native.u64
+      self._union.u8[0], self._union.u8[1], self._union.u8[2], self._union.u8[3] = b8, b7, b6, b5
+      self._union.u8[4], self._union.u8[5], self._union.u8[6], self._union.u8[7] = b4, b3, b2, b1
+      return self._union.u64
     end
   }
 }
@@ -387,12 +378,12 @@ do
     BlobReader.vs32,
     BlobReader.vu32,
     function(self)
-      self._native.s32[0], self._native.s32[1] = self:vs32(), self:vs32()
-      return self._native.s64
+      self._union.s32[0], self._union.s32[1] = self:vs32(), self:vs32()
+      return self._union.s64
     end,
     function(self)
-      self._native.u32[0], self._native.u32[1] = self:vu32(), self:vu32()
-      return self._native.u64
+      self._union.u32[0], self._union.u32[1] = self:vu32(), self:vu32()
+      return self._union.u64
     end
   }
   _arrayTypeMap = {
@@ -447,4 +438,16 @@ do
     end
   }
 end
+_Union = ffi.typeof([[	union {
+		  int8_t s8[8];
+		 uint8_t u8[8];
+		 int16_t s16[4];
+		uint16_t u16[4];
+		 int32_t s32[2];
+		uint32_t u32[2];
+		   float f32[2];
+		 int64_t s64;
+		uint64_t u64;
+		  double f64;
+}]])
 return BlobReader

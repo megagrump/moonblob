@@ -2,7 +2,7 @@
 ffi = require('ffi')
 band, shr = bit.band, bit.rshift
 
-local _byteOrder, _parseByteOrder
+local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
 
 --- Parses binary data from memory.
@@ -22,21 +22,7 @@ class BlobReader
 	-- @usage reader = BlobReader(data, '>')
 	-- @usage reader = BlobReader(cdata, 1000)
 	new: (data, sizeOrByteOrder, size) =>
-		@_native = ffi.new[[
-			union {
-				  int8_t s8[8];
-				 uint8_t u8[8];
-				 int16_t s16[4];
-				uint16_t u16[4];
-				 int32_t s32[2];
-				uint32_t u32[2];
-				   float f32[2];
-				 int64_t s64;
-				uint64_t u64;
-				  double f64;
-			}
-		]]
-
+		@_union = _Union!
 		byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
 		size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
 		@reset(data, size)
@@ -56,8 +42,8 @@ class BlobReader
 	--
 	-- @treturn number The number read read from the input data
 	number: =>
-		@_native.u32[0], @_native.u32[1] = @u32!, @u32!
-		@_native.f64
+		@_union.u32[0], @_union.u32[1] = @u32!, @u32!
+		@_union.f64
 
 	--- Reads a string from the input data.
 	--
@@ -105,8 +91,8 @@ class BlobReader
 	--
 	-- @treturn number The signed 8-bit value read from the input data
 	s8: =>
-		@_native.u8[0] = @u8!
-		@_native.s8[0]
+		@_union.u8[0] = @u8!
+		@_union.s8[0]
 
 	--- Reads one unsigned 16-bit value from the input data.
 	--
@@ -121,8 +107,8 @@ class BlobReader
 	--
 	-- @treturn number The signed 16-bit value read from the input data
 	s16: =>
-		@_native.u16[0] = @u16!
-		@_native.s16[0]
+		@_union.u16[0] = @u16!
+		@_union.s16[0]
 
 	--- Reads one unsigned 32 bit value from the input data.
 	--
@@ -137,8 +123,8 @@ class BlobReader
 	--
 	-- @treturn number The signed 32-bit value read from the input data
 	s32: =>
-		@_native.u32[0] = @u32!
-		@_native.s32[0]
+		@_union.u32[0] = @u32!
+		@_union.s32[0]
 
 	--- Reads one unsigned 64 bit value from the input data.
 	--
@@ -154,15 +140,15 @@ class BlobReader
 	--
 	-- @treturn number The signed 64-bit value read from the input data
 	s64: =>
-		@_native.u64 = @u64!
-		@_native.s64
+		@_union.u64 = @u64!
+		@_union.s64
 
 	--- Reads one 32 bit floating point value from the input data.
 	--
 	-- @treturn number The 32-bit floating point value read from the input data
 	f32: =>
-		@_native.u32[0] = @u32!
-		@_native.f32[0]
+		@_union.u32[0] = @u32!
+		@_union.f32[0]
 
 	--- Reads one 64 bit floating point value from the input data.
 	--
@@ -393,31 +379,31 @@ _getTag = (value) ->
 _byteOrder =
 	le:
 		_16: (b1, b2) =>
-			@_native.u8[0], @_native.u8[1] = b1, b2
-			@_native.u16[0]
+			@_union.u8[0], @_union.u8[1] = b1, b2
+			@_union.u16[0]
 
 		_32: (b1, b2, b3, b4) =>
-			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b1, b2, b3, b4
-			@_native.u32[0]
+			@_union.u8[0], @_union.u8[1], @_union.u8[2], @_union.u8[3] = b1, b2, b3, b4
+			@_union.u32[0]
 
 		_64: (b1, b2, b3, b4, b5, b6, b7, b8) =>
-			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b1, b2, b3, b4
-			@_native.u8[4], @_native.u8[5], @_native.u8[6], @_native.u8[7] = b5, b6, b7, b8
-			@_native.u64
+			@_union.u8[0], @_union.u8[1], @_union.u8[2], @_union.u8[3] = b1, b2, b3, b4
+			@_union.u8[4], @_union.u8[5], @_union.u8[6], @_union.u8[7] = b5, b6, b7, b8
+			@_union.u64
 
 	be:
 		_16: (b1, b2) =>
-			@_native.u8[0], @_native.u8[1] = b2, b1
-			@_native.u16[0]
+			@_union.u8[0], @_union.u8[1] = b2, b1
+			@_union.u16[0]
 
 		_32: (b1, b2, b3, b4) =>
-			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b4, b3, b2, b1
-			@_native.u32[0]
+			@_union.u8[0], @_union.u8[1], @_union.u8[2], @_union.u8[3] = b4, b3, b2, b1
+			@_union.u32[0]
 
 		_64: (b1, b2, b3, b4, b5, b6, b7, b8) =>
-			@_native.u8[0], @_native.u8[1], @_native.u8[2], @_native.u8[3] = b8, b7, b6, b5
-			@_native.u8[4], @_native.u8[5], @_native.u8[6], @_native.u8[7] = b4, b3, b2, b1
-			@_native.u64
+			@_union.u8[0], @_union.u8[1], @_union.u8[2], @_union.u8[3] = b8, b7, b6, b5
+			@_union.u8[4], @_union.u8[5], @_union.u8[6], @_union.u8[7] = b4, b3, b2, b1
+			@_union.u64
 
 _tags =
 	stop: 0
@@ -443,11 +429,11 @@ with BlobReader
 		.vs32
 		.vu32
 		=>
-			@_native.s32[0], @_native.s32[1] = @vs32!, @vs32!
-			@_native.s64
+			@_union.s32[0], @_union.s32[1] = @vs32!, @vs32!
+			@_union.s64
 		=>
-			@_native.u32[0], @_native.u32[1] = @vu32!, @vu32!
-			@_native.u64
+			@_union.u32[0], @_union.u32[1] = @vu32!, @vu32!
+			@_union.u64
 	}
 
 	_arrayTypeMap =
@@ -492,5 +478,19 @@ with BlobReader
 		['<']: => nil, @setByteOrder('<')
 		['>']: => nil, @setByteOrder('>')
 		['=']: => nil, @setByteOrder('=')
+
+_Union = ffi.typeof([[
+	union {
+		  int8_t s8[8];
+		 uint8_t u8[8];
+		 int16_t s16[4];
+		uint16_t u16[4];
+		 int32_t s32[2];
+		uint32_t u32[2];
+		   float f32[2];
+		 int64_t s64;
+		uint64_t u64;
+		  double f64;
+}]])
 
 BlobReader
