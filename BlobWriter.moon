@@ -551,6 +551,7 @@ _Union = ffi.typeof([[
 		 int64_t s64;
 		uint64_t u64;
 		  double f64;
-}]])
+	}
+]])
 
 BlobWriter
