@@ -250,19 +250,19 @@ class BlobWriter
 	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
 	-- `number`, `string`, `bool`, `cstring`, and `table`.
 	--
-	-- Stores the array length as a `vu32` encoded value before the actual table values.
+	-- Stores the array length as a `vu32` encoded value before the actual table values (see parameter `writeLength`)
 	--
-	-- @tparam table value A sequential table of values of type `valueType`
+	-- @tparam table values A sequential table of values of type `valueType`
 	--
 	-- Maximum allowed length is `2 ^ 32 - 1` values.
 	-- Behavior is undefined for table keys that are not sequential, or not starting at index 1.
-	--
+	-- @tparam[opt] boolean writeLength If `false`, no preceding length information will be written (default `true`)
 	-- @treturn BlobWriter self
-	array: (valueType, value) =>
+	array: (valueType, values, writeLength = true) =>
 		writer = _arrayTypeMap[valueType]
 		error("Invalid array type <#{valueType}>") unless writer
-		@vu32(#value)
-		writer(@, v) for v in *value
+		@vu32(#values) if writeLength
+		writer(@, v) for v in *values
 		@
 
 	--- Writes data according to a format string.

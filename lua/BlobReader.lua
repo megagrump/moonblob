@@ -161,7 +161,7 @@ do
       end
       return ffi.string(ffi.cast('uint8_t*', self._data + start), len)
     end,
-    array = function(self, valueType, result)
+    array = function(self, valueType, count, result)
       if result == nil then
         result = { }
       end
@@ -169,7 +169,7 @@ do
       if not (reader) then
         error("Invalid array type <" .. tostring(valueType) .. ">")
       end
-      local length = self:vu32()
+      local length = count or self:vu32()
       for i = 1, length do
         result[i] = reader(self)
       end
@@ -449,5 +449,6 @@ _Union = ffi.typeof([[	union {
 		 int64_t s64;
 		uint64_t u64;
 		  double f64;
-}]])
+	}
+]])
 return BlobReader

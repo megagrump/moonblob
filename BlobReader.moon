@@ -222,20 +222,20 @@ class BlobReader
 
 	--- Reads a sequential table of typed values.
 	--
-	-- Expects preceding `vu32` encoded array length information, as written by @{BlobWriter:array}.
-	--
 	-- @tparam string valueType Type of the values in the array
 	--
 	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
 	-- `number`, `string`, `bool`, `cstring`, and `table`.
 	--
+	-- @tparam[opt] number count Number of values to read. If `nil`, preceding `vu32` encoded array length information is
+	-- expected to be precede the array, as written by @{BlobWriter:array}.
 	-- @tparam[opt] table result Table to put the values in
 	-- @treturn table A sequential table, starting at index 1
 	-- @see BlobWriter:array
-	array: (valueType, result = {}) =>
+	array: (valueType, count, result = {}) =>
 		reader = _arrayTypeMap[valueType]
 		error("Invalid array type <#{valueType}>") unless reader
-		length = @vu32!
+		length = count or @vu32!
 		result[i] = reader(@) for i = 1, length
 		result
 

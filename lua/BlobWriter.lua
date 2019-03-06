@@ -126,14 +126,19 @@ do
     table = function(self, value)
       return self:_writeTable(value, { })
     end,
-    array = function(self, valueType, value)
+    array = function(self, valueType, values, writeLength)
+      if writeLength == nil then
+        writeLength = true
+      end
       local writer = _arrayTypeMap[valueType]
       if not (writer) then
         error("Invalid array type <" .. tostring(valueType) .. ">")
       end
-      self:vu32(#value)
-      for _index_0 = 1, #value do
-        local v = value[_index_0]
+      if writeLength then
+        self:vu32(#values)
+      end
+      for _index_0 = 1, #values do
+        local v = values[_index_0]
         writer(self, v)
       end
       return self
@@ -461,5 +466,6 @@ _Union = ffi.typeof([[	union {
 		 int64_t s64;
 		uint64_t u64;
 		  double f64;
-}]])
+	}
+]])
 return BlobWriter
