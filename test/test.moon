@@ -635,4 +635,13 @@ test_seek = ->
 	isError("Out of data", BlobReader.seek, r, 1000)
 	isError("Invalid read position", BlobReader.seek, r, -1)
 
+test_array_with_count = ->
+	data = { 0, 1, 2, 3, 4, 5, 6, 7, 8 }
+	w = BlobWriter!
+	w\array('number', data, false)
+
+	r = BlobReader(w\tostring!)
+	back = r\array('number', #data)
+	equals(data, back)
+
 lu.LuaUnit.new!\runSuite!
