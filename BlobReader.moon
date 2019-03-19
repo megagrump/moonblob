@@ -295,14 +295,6 @@ class BlobReader
 	-- @treturn number Data size in bytes
 	size: => @_size
 
-	--- Rewinds the read position to the beginning of the data.
-	--
-	-- DEPRECATED FUNCTION - will be removed in the future. Replaced by @{BlobReader:seek}
-	-- @treturn BlobReader self
-	-- @see reset
-	-- @see seek
-	rewind: => @seek(0)
-
 	--- Re-initializes the reader with new data and resets the read position.
 	--
 	-- @tparam string|cdata|nil data The source data
@@ -321,13 +313,15 @@ class BlobReader
 		else
 			error("Invalid data type <#{dtype}>")
 
-		@rewind!
+		@seek(0)
 
-	--- Move the read position to `pos`
+	--- Moves the read position to `pos`
 	--
-	-- @tparam number pos New read position (offset in bytes from the start of data)
+	-- @tparam number pos New read position (offset in bytes from the start of data). Negative values will seek from the
+	-- end of data
 	-- @treturn BlobReader self
 	seek: (pos) =>
+		pos = @_size + pos if pos < 0
 		error("Out of data") if pos > @_size
 		error("Invalid read position") if pos < 0
 		@_readPtr = pos

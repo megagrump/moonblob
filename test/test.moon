@@ -627,13 +627,17 @@ test_seek = ->
 	s = r\string!
 	equals(s, 'hello')
 
-	r\rewind!
+	r\seek(0)
 	o = r\u16!
 	s = r\raw(7)
 	equals(s, 'garbage')
 
+	r\seek(-6)
+	s = r\string!
+	equals(s, 'hello')
+
 	isError("Out of data", BlobReader.seek, r, 1000)
-	isError("Invalid read position", BlobReader.seek, r, -1)
+	isError("Invalid read position", BlobReader.seek, r, -1000)
 
 test_array_with_count = ->
 	data = { 0, 1, 2, 3, 4, 5, 6, 7, 8 }

@@ -228,9 +228,6 @@ do
     size = function(self)
       return self._size
     end,
-    rewind = function(self)
-      return self:seek(0)
-    end,
     reset = function(self, data, size)
       if type(data) == 'string' then
         self:_allocate(#data)
@@ -244,9 +241,12 @@ do
       else
         error("Invalid data type <" .. tostring(dtype) .. ">")
       end
-      return self:rewind()
+      return self:seek(0)
     end,
     seek = function(self, pos)
+      if pos < 0 then
+        pos = self._size + pos
+      end
       if pos > self._size then
         error("Out of data")
       end
