@@ -239,7 +239,7 @@ do
         self._size = 0
         self._data = nil
       else
-        error("Invalid data type <" .. tostring(dtype) .. ">")
+        error("Invalid data type <" .. tostring(type(data)) .. ">")
       end
       return self:seek(0)
     end,

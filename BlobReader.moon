@@ -311,7 +311,7 @@ class BlobReader
 			@_size = 0
 			@_data = nil
 		else
-			error("Invalid data type <#{dtype}>")
+			error("Invalid data type <#{type(data)}>")
 
 		@seek(0)
 
