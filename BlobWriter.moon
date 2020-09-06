@@ -3,7 +3,7 @@ ffi = require('ffi')
 band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 
 local _byteOrder, _parseByteOrder, _Union
-local _tags, _getTag, _taggedReaders, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _tags, _getTag, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
 
 --- Writes binary data to memory.
 class BlobWriter
@@ -400,6 +400,17 @@ class BlobWriter
 		@_orderBytes = _byteOrder[_parseByteOrder(byteOrder)]
 		@
 
+	--- Resizes the write buffer.
+	--
+	-- Data currently in the buffer is preserved. If the new size is smaller than the current length of the data,
+	-- the data will be truncated.
+	--
+	-- @tparam number newSize The new size of the write buffer
+	--
+	-- @treturn BlobWriter self
+	resize: (newSize) =>
+		@_allocate(newSize)
+		@
 	------------------------------------------------------------------------------------------------------
 
 	_allocate: (size) =>
