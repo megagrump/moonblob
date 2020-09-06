@@ -215,7 +215,8 @@ do
         self:skip(tonumber(table.concat(len)) or 1)
         len = nil
       end
-      format:gsub('.', function(c)
+      for i = 1, #format do
+        local c = format:sub(i, i)
         if len then
           if tonumber(c) then
             table.insert(len, c)
@@ -236,11 +237,11 @@ do
           else
             local parsed = parser(self)
             if parsed ~= nil then
-              return table.insert(result, parsed)
+              table.insert(result, parsed)
             end
           end
         end
-      end)
+      end
       if len then
         lenContext()
       end

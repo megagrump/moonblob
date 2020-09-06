@@ -22,7 +22,7 @@ SOFTWARE.
 local ffi = require('ffi')
 local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 local _byteOrder, _parseByteOrder, _Union
-local _tags, _getTag, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _tags, _getTag, _taggedWriters, _packMap, _arrayTypeMap
 local BlobWriter
 do
   local _class_0
@@ -181,7 +181,8 @@ do
         self:raw(data[index], l)
         index, len = index + 1, nil
       end
-      format:gsub('.', function(c)
+      for i = 1, #format do
+        local c = format:sub(i, i)
         if len then
           if tonumber(c) then
             table.insert(len, c)
@@ -208,7 +209,7 @@ do
             end
           end
         end
-      end)
+      end
       if len then
         _writeRaw()
       end

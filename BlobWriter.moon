@@ -336,7 +336,8 @@ class BlobWriter
 			@raw(data[index], l)
 			index, len = index + 1, nil
 
-		format\gsub('.', (c) ->
+		for i = 1, #format
+			c = format\sub(i, i)
 			if len
 				if tonumber(c)
 					table.insert(len, c)
@@ -352,7 +353,7 @@ class BlobWriter
 				else
 					error("Number of arguments to pack does not match format specifiers") unless index <= limit
 					index += 1 if writer(@, data[index])
-		)
+
 		_writeRaw! if len -- final specifier in format was a length specifier
 		@
 

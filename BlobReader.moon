@@ -289,7 +289,8 @@ class BlobReader
 			@skip(tonumber(table.concat(len)) or 1)
 			len = nil
 
-		format\gsub('.', (c) ->
+		for i = 1, #format
+			c = format\sub(i, i)
 			if len
 				if tonumber(c)
 					table.insert(len, c)
@@ -307,7 +308,6 @@ class BlobReader
 					else
 						parsed = parser(@)
 						table.insert(result, parsed) if parsed ~= nil
-		)
 
 		lenContext! if len -- final specifier in format was a length specifier
 		unpack(result)
