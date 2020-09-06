@@ -5,62 +5,62 @@ moonblob is a compact LuaJIT library written in moonscript that performs seriali
 ## How to use
 
 ### Writing data
+```lua
+BlobWriter = require('BlobWriter')
 
-	BlobWriter = require('BlobWriter')
+blob = BlobWriter()
 
-	blob = BlobWriter()
-
-	-- Store raw binary data
-	blob
-		:u8(23)
-		:number(123.45)
-		:f32(23.0)
-		:string('string')
-		...
-
-	-- Store Lua types
-	blob
-		:write({ key: 'value', tbl: { 1, 2, 3 } }) -- no cycles allowed!
-		:write(23)
-		:write(true)
-		:write('string')
-
-	-- Write data to file
-	file = io.open('filename.ext', 'wb')
-	file:write(blob:tostring())
-	file:close()
-
-### Reading data
-
-	BlobReader = require('BlobReader')
-
-	-- Load data from file
-	file = io.open('filename.ext', 'rb')
-	blob = BlobReader(file:read('*all'))
-	file:close()
-
-	-- Parse raw binary data
-	u8 = blob:u8()
-	s16 = blob:s16()
-	str = blob:cstring()
-	float = blob:f32()
+-- Store raw binary data
+blob
+	:u8(23)
+	:number(123.45)
+	:f32(23.0)
+	:string('string')
 	...
 
-	-- Read Lua types
-	tbl = blob:table()
-	bool = blob:bool() -- 8 bits, 0 == false
-	num = blob:number()
-	str = blob:string()
+-- Store Lua types
+blob
+	:write({ key: 'value', tbl: { 1, 2, 3 } }) -- no cycles allowed!
+	:write(23)
+	:write(true)
+	:write('string')
 
+-- Write data to file
+file = io.open('filename.ext', 'wb')
+file:write(blob:tostring())
+file:close()
+```
+### Reading data
+```lua
+BlobReader = require('BlobReader')
+
+-- Load data from file
+file = io.open('filename.ext', 'rb')
+blob = BlobReader(file:read('*all'))
+file:close()
+
+-- Parse raw binary data
+u8 = blob:u8()
+s16 = blob:s16()
+str = blob:cstring()
+float = blob:f32()
+...
+
+-- Read Lua types
+tbl = blob:table()
+bool = blob:bool() -- 8 bits, 0 == false
+num = blob:number()
+str = blob:string()
+```
 ## Documentation
 
 [API reference](https://megagrump.github.io/moonblob/doc/)
 
 ### Reading and writing Lua types
 
-[`BlobReader\read`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#read) and [`BlobWriter\write`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#write) can be used to store Lua values along with their type. `BlobReader\read` can only read data that was previously written by `BlobWriter\write`.
+[`BlobReader:read`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#read) and [`BlobWriter:write`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#write) can be used to store Lua values along with their type. `BlobReader:read` can only read data that was previously written by `BlobWriter:write`.
 
-These data types are supported by `BlobReader\read` and `BlobWriter\write`:
+These data types are supported by `BlobReader:read` and `BlobWriter:write`:
 * `number` (64 bit)
 * `string` (up to 2^32-1 bytes)
 * `boolean`
@@ -86,7 +86,7 @@ A low level interface is provided for handling arbitrary binary data.
 	cstring      -- zero-terminated string
 	array        -- sequential table of typed values
 
-To describe the raw data format in a more concise manner, use [`BlobWriter\pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader\unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API reference](https://megagrump.github.io/moonblob/doc) for details.
+To describe the raw data format in a more concise manner, use [`BlobWriter:pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader:unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API reference](https://megagrump.github.io/moonblob/doc) for details.
 
 ### Compatibility
 
@@ -96,7 +96,7 @@ Since moonblob uses the ffi library and C data types, it is not compatible with 
 
 ### License
 
-Copyright 2017, 2018 megagrump
+Copyright 2017-2020 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
