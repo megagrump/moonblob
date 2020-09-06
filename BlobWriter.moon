@@ -25,7 +25,7 @@ ffi = require('ffi')
 band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 
 local _byteOrder, _parseByteOrder, _Union
-local _tags, _getTag, _taggedWriters, _packMap, _unpackMap, _arrayTypeMap
+local _tags, _getTag, _taggedWriters, _packMap, _arrayTypeMap
 
 --- Writes binary data to memory.
 class BlobWriter
