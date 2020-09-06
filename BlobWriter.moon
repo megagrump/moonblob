@@ -207,7 +207,7 @@ class BlobWriter
 	--- Writes an unsigned 64 bit value to the output buffer.
 	--
 	-- Lua numbers are only accurate for values < 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
-	-- @usage writer\u64(72057594037927936ULL)
+	-- @usage writer:u64(72057594037927936ULL)
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
 	u64: (value) =>
@@ -323,7 +323,7 @@ class BlobWriter
 	--
 	-- @param ... values to write
 	-- @treturn BlobWriter self
-	-- @usage writer\pack('Bfy', 255, 23.0, true)
+	-- @usage writer:pack('Bfy', 255, 23.0, true)
 	-- @see BlobReader:unpack
 	pack: (format, ...) =>
 		data, index, len = {...}, 1, nil
