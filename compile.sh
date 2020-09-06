@@ -1,3 +1,3 @@
 #!/bin/sh
-moonc -t lua *.moon
+moonc *.moon
 ldoc .
