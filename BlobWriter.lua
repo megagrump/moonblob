@@ -219,7 +219,7 @@ do
       self._length = 0
       if size then
         self._data = nil
-        self:_allocate(size)
+        self:resize(size)
       end
       return self
     end,
@@ -274,26 +274,22 @@ do
       return self
     end,
     resize = function(self, newSize)
-      self:_allocate(newSize)
-      return self
-    end,
-    _allocate = function(self, size)
       local data
-      if size > 0 then
-        data = ffi.new('uint8_t[?]', size)
+      self._length = math.min(newSize, self._length)
+      if newSize > 0 then
+        data = ffi.new('uint8_t[?]', newSize)
         if self._data then
           ffi.copy(data, self._data, self._length)
         end
       end
-      self._data, self._size = data, size
-      self._length = math.min(size, self._length)
+      self._data, self._size = data, newSize
     end,
     _grow = function(self, minimum)
       if minimum == nil then
         minimum = 0
       end
       local newSize = math.max(self._size + minimum, math.floor(math.max(1, self._size * 1.5) + .5))
-      return self:_allocate(newSize)
+      return self:resize(newSize)
     end,
     _writeTable = function(self, t, stack)
       if stack == nil then
@@ -333,7 +329,7 @@ do
       local byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
       size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
       self:setByteOrder(byteOrder)
-      return self:_allocate(size or 1024)
+      return self:resize(size or 1024)
     end,
     __base = _base_0,
     __name = "BlobWriter"
