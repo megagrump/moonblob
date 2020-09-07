@@ -648,4 +648,18 @@ test_array_with_count = ->
 	back = r\array('number', #data)
 	equals(data, back)
 
+test_resize = ->
+	w = BlobWriter!
+	w\cstring('testtesttest')
+	equals(w\length!, 13)
+	w\resize(4)
+	equals(w\size!, 4)
+	equals(w\length!, 4)
+	equals(w\tostring!, 'test')
+
+	w\resize(8)
+	equals(w\size!, 8)
+	equals(w\length!, 4)
+	equals(w\tostring!, 'test')
+
 lu.LuaUnit.new!\runSuite!

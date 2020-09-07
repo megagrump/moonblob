@@ -48,7 +48,7 @@ class BlobWriter
 		byteOrder = type(sizeOrByteOrder) == 'string' and sizeOrByteOrder or nil
 		size = type(sizeOrByteOrder) == 'number' and sizeOrByteOrder or size
 		@setByteOrder(byteOrder)
-		@_allocate(size or 1024)
+		@resize(size or 1024)
 
 	--- Writes a value to the output buffer. Determines the type of the value automatically.
 	--
@@ -368,7 +368,7 @@ class BlobWriter
 		@_length = 0
 		if size
 			@_data = nil
-			@_allocate(size)
+			@resize(size)
 		@
 
 	--- Returns the current buffer contents as a string.
@@ -432,21 +432,16 @@ class BlobWriter
 	--
 	-- @treturn BlobWriter self
 	resize: (newSize) =>
-		@_allocate(newSize)
-		@
-	------------------------------------------------------------------------------------------------------
-
-	_allocate: (size) =>
 		local data
-		if size > 0
-			data = ffi.new('uint8_t[?]', size)
+		@_length = math.min(newSize, @_length)
+		if newSize > 0
+			data = ffi.new('uint8_t[?]', newSize)
 			ffi.copy(data, @_data, @_length) if @_data
-		@_data, @_size = data, size
-		@_length = math.min(size, @_length)
+		@_data, @_size = data, newSize
 
 	_grow: (minimum = 0) =>
 		newSize = math.max(@_size + minimum, math.floor(math.max(1, @_size * 1.5) + .5))
-		@_allocate(newSize)
+		@resize(newSize)
 
 	_writeTable: (t, stack = {}) =>
 		error("Cycle detected; can't serialize table") if stack[t]
