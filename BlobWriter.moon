@@ -497,7 +497,7 @@ with BlobWriter
 			@vs32(@_union.s32[0])\vs32(@_union.s32[1])
 		(val) => -- vu64
 			@_union.u64 = val
-			@vu32(@_union.u32[0])\vs32(@_union.u32[1])
+			@vu32(@_union.u32[0])\vu32(@_union.u32[1])
 	}
 
 	_arrayTypeMap =
