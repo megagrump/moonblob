@@ -438,6 +438,7 @@ class BlobWriter
 			data = ffi.new('uint8_t[?]', newSize)
 			ffi.copy(data, @_data, @_length) if @_data
 		@_data, @_size = data, newSize
+		@
 
 	_grow: (minimum = 0) =>
 		newSize = math.max(@_size + minimum, math.floor(math.max(1, @_size * 1.5) + .5))

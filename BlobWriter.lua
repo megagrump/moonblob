@@ -283,6 +283,7 @@ do
         end
       end
       self._data, self._size = data, newSize
+      return self
     end,
     _grow = function(self, minimum)
       if minimum == nil then
