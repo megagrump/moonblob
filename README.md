@@ -65,6 +65,7 @@ These data types are supported by `BlobReader:read` and `BlobWriter:write`:
 * `string` (up to 2^32-1 bytes)
 * `boolean`
 * `table`
+* `cdata`
 
 Type and length information will be added as metadata by the `write` function. Metadata overhead is 1 byte per value written for type information, and between 1 and 5 bytes per string written for length information. Tables can contain `number`, `string`, `boolean`, and `table` as key and value types. An error is being thrown if other types or cyclic nested tables are encountered.
 
@@ -85,6 +86,7 @@ A low level interface is provided for handling arbitrary binary data.
 	raw          -- raw binary data (length must be specified)
 	cstring      -- zero-terminated string
 	array        -- sequential table of typed values
+	cdata        -- LuaJIT cdata
 
 To describe the raw data format in a more concise manner, use [`BlobWriter:pack`](https://megagrump.github.io/moonblob/doc/classes/BlobWriter.html#pack) and [`BlobReader:unpack`](https://megagrump.github.io/moonblob/doc/classes/BlobReader.html#unpack). These functions work similar to `string.unpack` and `string.pack` in Lua 5.3, although some details are different (fixed instead of native data sizes; more supported data types; some features are not implemented). See [API reference](https://megagrump.github.io/moonblob/doc) for details.
 
