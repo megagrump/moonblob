@@ -124,15 +124,14 @@ test_CData_table = ->
 		equals(array[i].__typename, result[i].__typename)
 		equals(array[i].val, result[i].val)
 
-	-- tbl = { one: ctype(1), two: ctype(2) }
-	-- writer = BlobWriter!
-	-- writer\write(tbl)
+	tbl = { one: ctype(1), two: ctype(2) }
+	writer = BlobWriter!
+	writer\write(tbl)
 
-	-- reader = BlobReader(writer\tostring!)
-	-- result = reader\array('cdata')
-	-- equals(result.one, tbl.one)
-	-- equals(result.two, tbl.two)
-
+	reader = BlobReader(writer\tostring!)
+	result = reader\read('cdata')
+	equals(result.one.val, tbl.one.val)
+	equals(result.two.val, tbl.two.val)
 
 test_Formatted = ->
 	b0 = BlobWriter!

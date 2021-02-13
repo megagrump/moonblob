@@ -420,7 +420,9 @@ do
       self._union.u32[0], self._union.u32[1] = self:vu32(), self:vu32()
       return self._union.u64
     end,
-    BlobReader.cdata
+    function(self)
+      return self:cdata()
+    end
   }
   _arrayTypeMap = {
     s8 = BlobReader.s8,

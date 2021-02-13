@@ -469,7 +469,7 @@ with BlobReader
 		=>
 			@_union.u32[0], @_union.u32[1] = @vu32!, @vu32!
 			@_union.u64
-		.cdata
+		=> @cdata!
 	}
 
 	_arrayTypeMap =
