@@ -102,7 +102,7 @@ test_CData_custom = ->
 	equals(cdata.x, result.x)
 	equals(cdata.y, result.y)
 
-test_CData_array = ->
+test_CData_table = ->
 	ffi.cdef('typedef struct { double val; } teststruct3_t;')
 	metatype = {
 		__index:
@@ -123,6 +123,16 @@ test_CData_array = ->
 	for i = 1, 3
 		equals(array[i].__typename, result[i].__typename)
 		equals(array[i].val, result[i].val)
+
+	-- tbl = { one: ctype(1), two: ctype(2) }
+	-- writer = BlobWriter!
+	-- writer\write(tbl)
+
+	-- reader = BlobReader(writer\tostring!)
+	-- result = reader\array('cdata')
+	-- equals(result.one, tbl.one)
+	-- equals(result.two, tbl.two)
+
 
 test_Formatted = ->
 	b0 = BlobWriter!

@@ -528,7 +528,7 @@ with BlobWriter
 		(val) => -- vu64
 			@_union.u64 = val
 			@vu32(@_union.u32[0])\vu32(@_union.u32[1])
-		.cdata
+		(val) => @cdata(val)
 	}
 
 	_arrayTypeMap =

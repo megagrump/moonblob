@@ -410,7 +410,9 @@ do
       self._union.u64 = val
       return self:vu32(self._union.u32[0]):vu32(self._union.u32[1])
     end,
-    BlobWriter.cdata
+    function(self, val)
+      return self:cdata(val)
+    end
   }
   _arrayTypeMap = {
     s8 = BlobWriter.s8,
