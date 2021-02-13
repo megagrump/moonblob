@@ -26,6 +26,7 @@ band, shr = bit.band, bit.rshift
 
 local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
+local _hasDeserializer
 
 --- Parses binary data from memory.
 class BlobReader
@@ -220,6 +221,23 @@ class BlobReader
 		@_readPtr = ptr + len
 		ffi.string(ffi.cast('uint8_t*', @_data + ptr), len)
 
+	--- Reads a `cdata` object from the input data.
+	--
+	-- This function can only read data that was written by @{BlobWriter:cdata}.
+	-- @tparam[opt] string typename The C type name of the `cdata` object.
+	--
+	-- Not required when the metatype of the ctype contains a `__typename`
+	-- @treturn cdata The `cdata` object
+	cdata: (typename) =>
+		typename or= @string!
+		ctype = ffi.typeof(typename)
+		hasDeserializer = pcall(_hasDeserializer, ctype)
+		return ctype\__deserialize(@) if hasDeserializer
+
+		cdata, len = ctype!, @vu32!
+		ffi.copy(cdata, @raw(len), len)
+		cdata
+
 	--- Skips a number of bytes in the input data.
 	--
 	-- @tparam number len The number of bytes to skip
@@ -247,7 +265,7 @@ class BlobReader
 	-- @tparam string valueType Type of the values in the array
 	--
 	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
-	-- `number`, `string`, `bool`, `cstring`, and `table`.
+	-- `number`, `string`, `bool`, `cstring`, `table`, and `cdata`.
 	--
 	-- @tparam[opt] number count Number of values to read. If `nil`, preceding `vu32` encoded array length information is
 	-- expected to be precede the array, as written by @{BlobWriter:array}.
@@ -433,6 +451,7 @@ _tags =
 	vu32: 8
 	vs64: 9
 	vu64: 10
+	cdata: 11
 
 with BlobReader
 	_taggedReaders = {
@@ -450,6 +469,7 @@ with BlobReader
 		=>
 			@_union.u32[0], @_union.u32[1] = @vu32!, @vu32!
 			@_union.u64
+		.cdata
 	}
 
 	_arrayTypeMap =
@@ -470,6 +490,7 @@ with BlobReader
 		cstring: .cstring
 		bool:    .bool
 		table:   .table
+		cdata:   .cdata
 
 	_unpackMap =
 		b: .s8
@@ -490,10 +511,13 @@ with BlobReader
 		z: .cstring
 		t: .table
 		y: .bool
+		C: .cdata
 		x: => nil, @skip(1)
 		['<']: => nil, @setByteOrder('<')
 		['>']: => nil, @setByteOrder('>')
 		['=']: => nil, @setByteOrder('=')
+
+_hasDeserializer = (ctype) -> ctype.__deserialize ~= nil
 
 _Union = ffi.typeof([[
 	union {

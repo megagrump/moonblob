@@ -23,6 +23,7 @@ local ffi = require('ffi')
 local band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedWriters, _packMap, _arrayTypeMap
+local _hasTypename, _hasSerializer
 local BlobWriter
 do
   local _class_0
@@ -132,7 +133,7 @@ do
       return self:number(value)
     end,
     raw = function(self, value, length)
-      length = length or #value
+      length = length or (type(value) == 'string' and #value or ffi.sizeof(value))
       local makeRoom = (self._size - self._length) - length
       if makeRoom < 0 then
         self:_grow(math.abs(makeRoom))
@@ -143,6 +144,24 @@ do
     end,
     cstring = function(self, value)
       return self:raw(value):u8(0)
+    end,
+    cdata = function(self, value, typename, length)
+      if not typename and pcall(_hasTypename, value) then
+        typename = value.__typename
+      end
+      if not (typename) then
+        error("Can't write cdata without a type name")
+      end
+      local hasSerializer = pcall(_hasSerializer, value)
+      self:string(typename)
+      if hasSerializer then
+        value:__serialize(self)
+      else
+        length = length or ffi.sizeof(value)
+        self:vu32(length)
+        self:raw(value, length)
+      end
+      return self
     end,
     table = function(self, value)
       return self:_writeTable(value, { })
@@ -364,7 +383,8 @@ _tags = {
   vs32 = 7,
   vu32 = 8,
   vs64 = 9,
-  vu64 = 10
+  vu64 = 10,
+  cdata = 11
 }
 do
   _taggedWriters = {
@@ -389,7 +409,8 @@ do
     function(self, val)
       self._union.u64 = val
       return self:vu32(self._union.u32[0]):vu32(self._union.u32[1])
-    end
+    end,
+    BlobWriter.cdata
   }
   _arrayTypeMap = {
     s8 = BlobWriter.s8,
@@ -408,7 +429,8 @@ do
     string = BlobWriter.string,
     cstring = BlobWriter.cstring,
     bool = BlobWriter.bool,
-    table = BlobWriter.table
+    table = BlobWriter.table,
+    cdata = BlobWriter.cdata
   }
   _packMap = {
     b = BlobWriter.s8,
@@ -429,6 +451,7 @@ do
     z = BlobWriter.cstring,
     t = BlobWriter.table,
     y = BlobWriter.bool,
+    C = BlobWriter.cdata,
     ['<'] = function(self)
       return nil, self:setByteOrder('<')
     end,
@@ -477,6 +500,12 @@ _getTag = function(value)
     return _tags.vs64
   end
   return _tags[t]
+end
+_hasTypename = function(value)
+  return value.__typename ~= nil
+end
+_hasSerializer = function(value)
+  return value.__serialize ~= nil
 end
 _Union = ffi.typeof([[	union {
 		  int8_t s8[8];

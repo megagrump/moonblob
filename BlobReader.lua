@@ -23,6 +23,7 @@ local ffi = require('ffi')
 local band, shr = bit.band, bit.rshift
 local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedReaders, _unpackMap, _arrayTypeMap
+local _hasDeserializer
 local BlobReader
 do
   local _class_0
@@ -159,6 +160,17 @@ do
       end
       self._readPtr = ptr + len
       return ffi.string(ffi.cast('uint8_t*', self._data + ptr), len)
+    end,
+    cdata = function(self, typename)
+      typename = typename or self:string()
+      local ctype = ffi.typeof(typename)
+      local hasDeserializer = pcall(_hasDeserializer, ctype)
+      if hasDeserializer then
+        return ctype:__deserialize(self)
+      end
+      local cdata, len = ctype(), self:vu32()
+      ffi.copy(cdata, self:raw(len), len)
+      return cdata
     end,
     skip = function(self, len)
       if self._size <= self._readPtr + len - 1 then
@@ -381,7 +393,8 @@ _tags = {
   vs32 = 7,
   vu32 = 8,
   vs64 = 9,
-  vu64 = 10
+  vu64 = 10,
+  cdata = 11
 }
 do
   _taggedReaders = {
@@ -406,7 +419,8 @@ do
     function(self)
       self._union.u32[0], self._union.u32[1] = self:vu32(), self:vu32()
       return self._union.u64
-    end
+    end,
+    BlobReader.cdata
   }
   _arrayTypeMap = {
     s8 = BlobReader.s8,
@@ -425,7 +439,8 @@ do
     string = BlobReader.string,
     cstring = BlobReader.cstring,
     bool = BlobReader.bool,
-    table = BlobReader.table
+    table = BlobReader.table,
+    cdata = BlobReader.cdata
   }
   _unpackMap = {
     b = BlobReader.s8,
@@ -446,6 +461,7 @@ do
     z = BlobReader.cstring,
     t = BlobReader.table,
     y = BlobReader.bool,
+    C = BlobReader.cdata,
     x = function(self)
       return nil, self:skip(1)
     end,
@@ -459,6 +475,9 @@ do
       return nil, self:setByteOrder('=')
     end
   }
+end
+_hasDeserializer = function(ctype)
+  return ctype.__deserialize ~= nil
 end
 _Union = ffi.typeof([[	union {
 		  int8_t s8[8];

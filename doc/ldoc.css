@@ -39,6 +39,7 @@ del,ins {
 }
 li {
     margin-left: 20px;
+    margin-bottom: 1em;
 }
 caption,th {
     text-align: left;
@@ -80,7 +81,8 @@ body {
     background-color: #ffffff; margin: 0px;
 }
 
-code, tt, span.parameter { font-family: monospace; font-size: 1.1em; border: solid 1px #ccc; background-color: #eee; padding: 1px 0.5em; }
+code, tt, span.parameter { font-family: monospace; font-size: 1.1em; background-color: #eee; padding: 1px 0.5em; }
+span.parameter { font-weight: bold; border: solid 1px #ccc; }
 span.parameter:after { content:""; }
 span.types:before { content:"("; }
 span.types:after { content:"):"; }
@@ -115,7 +117,7 @@ hr {
 
 blockquote { margin-left: 3em; }
 
-ul { list-style-type: disc; }
+ul { list-style-type: none; }
 
 p.name {
     font-family: "Andale Mono", monospace;

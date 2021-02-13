@@ -26,6 +26,7 @@ band, bnot, shr, shl = bit.band, bit.bnot, bit.rshift, bit.lshift
 
 local _byteOrder, _parseByteOrder, _Union
 local _tags, _getTag, _taggedWriters, _packMap, _arrayTypeMap
+local _hasTypename, _hasSerializer
 
 --- Writes binary data to memory.
 class BlobWriter
@@ -242,10 +243,11 @@ class BlobWriter
 	--- Writes raw binary data to the output buffer.
 	--
 	-- @tparam string|cdata value A `string` or `cdata` with the data to write
-	-- @tparam[opt] number length Length of data (not required when `value` is a string)
+	-- @tparam[opt] number length Length of data. Not required when `value` is a string, or when
+	-- [ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof)` can be used to query the size of the `cdata` object
 	-- @treturn BlobWriter self
 	raw: (value, length) =>
-		length = length or #value
+		length = length or (type(value) == 'string' and #value or ffi.sizeof(value))
 		makeRoom = (@_size - @_length) - length
 		@_grow(math.abs(makeRoom)) if makeRoom < 0
 		ffi.copy(ffi.cast('uint8_t*', @_data + @_length), value, length)
@@ -257,6 +259,31 @@ class BlobWriter
 	-- @tparam string value The string to write
 	-- @treturn BlobWriter self
 	cstring: (value) => @raw(value)\u8(0)
+
+	--- Writes a `cdata` object to the output buffer.
+	-- See `examples/cdata.lua` for example code on how to implement transparent `cdata` serialization.
+	--
+	-- @tparam cdata value A `cdata` object
+	-- @tparam[opt] string typename Type name of the `cdata` object.
+	--
+	--  This is the name of the type as declared with `ffi.cdef`. Not required when the metatype has a `__typename` field
+	-- @tparam[opt] number length Length of data.
+	--
+	-- Not required when `[ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof)` can be used to query the
+	-- size of the `cdata` object, or when the metatype has `__typename` and `__serialize` fields
+	-- @treturn BlobWriter self
+	cdata: (value, typename, length) =>
+		typename = value.__typename if not typename and pcall(_hasTypename, value)
+		error("Can't write cdata without a type name") unless typename
+		hasSerializer = pcall(_hasSerializer, value)
+		@string(typename)
+		if hasSerializer
+			value\__serialize(@)
+		else
+			length or= ffi.sizeof(value)
+			@vu32(length)
+			@raw(value, length)
+		@
 
 	--- Writes a table to the output buffer.
 	--
@@ -270,7 +297,7 @@ class BlobWriter
 	-- @tparam string valueType Type of the values in the array
 	--
 	-- Valid types are `s8`, `u8`, `s16`, `u16`, `s32`, `u32`, `vs32`, `vu32`, `s64`, `u64`, `f32`, `f64`,
-	-- `number`, `string`, `bool`, `cstring`, and `table`.
+	-- `number`, `string`, `bool`, `cstring`, `table`, and `cdata`.
 	--
 	-- Stores the array length as a `vu32` encoded value before the actual table values (see parameter `writeLength`)
 	--
@@ -320,6 +347,8 @@ class BlobWriter
 	--     * `c[length]`: Raw binary data
 	-- * Table:
 	--     * `t`: table as written by @{table}
+	-- * cdata:
+	--     * `C`: cdata as written by @{cdata}. Supports only ctypes that have a metatable with serialization information
 	--
 	-- @param ... values to write
 	-- @treturn BlobWriter self
@@ -481,6 +510,7 @@ _tags =
 	vu32: 8
 	vs64: 9
 	vu64: 10
+	cdata: 11
 
 with BlobWriter
 	_taggedWriters = {
@@ -498,6 +528,7 @@ with BlobWriter
 		(val) => -- vu64
 			@_union.u64 = val
 			@vu32(@_union.u32[0])\vu32(@_union.u32[1])
+		.cdata
 	}
 
 	_arrayTypeMap =
@@ -518,6 +549,7 @@ with BlobWriter
 		cstring: .cstring
 		bool:    .bool
 		table:   .table
+		cdata:   .cdata
 
 	_packMap =
 		b: .s8
@@ -538,6 +570,7 @@ with BlobWriter
 		z: .cstring
 		t: .table
 		y: .bool
+		C: .cdata
 		['<']: => nil, @setByteOrder('<')
 		['>']: => nil, @setByteOrder('>')
 		['=']: => nil, @setByteOrder('=')
@@ -568,6 +601,9 @@ _getTag = (value) ->
 			return _tags.vs32 if value >= -2 ^ 31
 			return _tags.vs64
 	_tags[t]
+
+_hasTypename = (value) -> value.__typename ~= nil
+_hasSerializer = (value) -> value.__serialize ~= nil
 
 _Union = ffi.typeof([[
 	union {

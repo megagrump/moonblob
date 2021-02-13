@@ -34,7 +34,7 @@ test_Writer_signed = ->
 			equals(r\s32!, i)
 			equals(r\s64!, ffi.cast('int64_t', i))
 
-test_CData = ->
+test_raw_CData = ->
 	data = ffi.new('uint8_t[256]')
 	data[i] = i for i = 0, 255
 
@@ -52,6 +52,77 @@ test_CData = ->
 	blob2 = BlobReader(data, 256)
 	equals(blob2\size!, 256)
 	equals(blob2\u8!, i) for i = 0, 255
+
+test_CData = ->
+	ffi.cdef('typedef struct { double x, y; } teststruct1_t;')
+	metatype = {
+		__index:
+			__typename: 'teststruct1_t'
+	}
+
+	ctype = ffi.metatype(ffi.typeof('teststruct1_t'), metatype)
+	cdata = ctype(23, 42)
+	test2 = ffi.new('int[2]', 12345, 54321)
+
+	writer = BlobWriter!
+	writer\cdata(cdata)
+	writer\cdata(test2, 'int[2]')
+
+	reader = BlobReader(writer\tostring!)
+	result = reader\cdata!
+	test2result = reader\cdata!
+
+	equals(cdata.__typename, result.__typename)
+	equals(cdata.x, result.x)
+	equals(cdata.y, result.y)
+	equals(test2result[0], 12345)
+	equals(test2result[1], 54321)
+
+test_CData_custom = ->
+	ffi.cdef('typedef struct { double x, y; } teststruct2_t;')
+	metatype = {
+		__index:
+			__typename: 'teststruct2_t'
+			__serialize: (writer) => writer\number(@y)\number(@x)
+			__deserialize: (reader) =>
+				y, x = reader\number!, reader\number!
+				@(x, y)
+	}
+
+	ctype = ffi.metatype(ffi.typeof('teststruct2_t'), metatype)
+	cdata = ctype(23, 42)
+
+	writer = BlobWriter!
+	writer\write(cdata)
+
+	reader = BlobReader(writer\tostring!)
+	result = reader\read!
+
+	equals(cdata.__typename, result.__typename)
+	equals(cdata.x, result.x)
+	equals(cdata.y, result.y)
+
+test_CData_array = ->
+	ffi.cdef('typedef struct { double val; } teststruct3_t;')
+	metatype = {
+		__index:
+			__typename: 'teststruct3_t'
+	}
+
+	ctype = ffi.metatype(ffi.typeof('teststruct3_t'), metatype)
+	array = { ctype(1), ctype(2), ctype(3) }
+
+	writer = BlobWriter!
+	writer\array('cdata', array)
+
+	reader = BlobReader(writer\tostring!)
+	result = reader\array('cdata')
+	equals(type(result), 'table')
+	equals(#result, 3)
+
+	for i = 1, 3
+		equals(array[i].__typename, result[i].__typename)
+		equals(array[i].val, result[i].val)
 
 test_Formatted = ->
 	b0 = BlobWriter!
@@ -223,8 +294,15 @@ test_LargeString = ->
 	equals(BlobReader(b4\tostring!)\string!, longstr)
 
 test_pack_unpack = ->
-	w = BlobWriter!\pack('<BHB>L=QvVz', 255, 65535, 0, 2 ^ 32 - 1, 9876543210123ULL, -2 ^ 31, 2 ^ 31, 'cstring')
-	B, H, L, Q, v, V, z = BlobReader(w\tostring!)\unpack('<BHx>L=QvVz')
+	ffi.cdef('typedef struct { double val; } teststruct4_t;')
+	metatype = {
+		__index:
+			__typename: 'teststruct4_t'
+	}
+	ffi.metatype(ffi.typeof('teststruct4_t'), metatype)
+
+	w = BlobWriter!\pack('<BHB>L=QvVzC', 255, 65535, 0, 2 ^ 32 - 1, 9876543210123ULL, -2 ^ 31, 2 ^ 31, 'cstring', ffi.new('teststruct4_t', 42))
+	B, H, L, Q, v, V, z, C = BlobReader(w\tostring!)\unpack('<BHx>L=QvVzC')
 	equals(B, 255)
 	equals(H, 65535)
 	equals(L, 2 ^ 32 - 1)
@@ -232,6 +310,7 @@ test_pack_unpack = ->
 	equals(v, -2 ^ 31)
 	equals(V, 2 ^ 31)
 	equals(z, 'cstring')
+	equals(C.val, 42)
 
 test_unpack_skipMultiple = ->
 	w = BlobWriter!\s64(123456789)\s32(42)
@@ -662,4 +741,4 @@ test_resize = ->
 	equals(w\length!, 4)
 	equals(w\tostring!, 'test')
 
-lu.LuaUnit.new!\runSuite!
+lu.LuaUnit.new!\runSuite('--verbose')
