@@ -1,7 +1,7 @@
 -- @class BlobWriter
 LICENSE = [[
 
-Copyright (c) 2017-2020 megagrump
+Copyright (c) 2017-2021 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,8 @@ class BlobWriter
 
 	--- Writes a value to the output buffer. Determines the type of the value automatically.
 	--
-	-- Supported value types are `number`, `string`, `boolean` and `table`.
+	-- Supported value types are `number`, `string`, `boolean`, `table`, and `cdata`.
+	--
 	-- @param value the value to write
 	-- @treturn BlobWriter self
 	write: (value) => @_writeTagged(value)
@@ -69,6 +70,7 @@ class BlobWriter
 	--- Writes a boolean value to the output buffer.
 	--
 	-- The value is written as an unsigned 8 bit value (`true = 1`, `false = 0`)
+	--
 	-- @tparam bool value The boolean value to write
 	--
 	-- @treturn BlobWriter self
@@ -77,6 +79,7 @@ class BlobWriter
 	--- Writes a string to the output buffer.
 	--
 	-- Stores the length of the string as a `vu32` field before the actual string data.
+	--
 	-- @tparam string value The string to write
 	-- @treturn BlobWriter self
 	string: (value) =>
@@ -208,6 +211,7 @@ class BlobWriter
 	--- Writes an unsigned 64 bit value to the output buffer.
 	--
 	-- Lua numbers are only accurate for values < 2 ^ 53. Use the LuaJIT `ULL` suffix to write large numbers.
+	--
 	-- @usage writer:u64(72057594037927936ULL)
 	-- @tparam number value The value to write
 	-- @treturn BlobWriter self
@@ -243,8 +247,11 @@ class BlobWriter
 	--- Writes raw binary data to the output buffer.
 	--
 	-- @tparam string|cdata value A `string` or `cdata` with the data to write
-	-- @tparam[opt] number length Length of data. Not required when `value` is a string, or when
-	-- [ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof)` can be used to query the size of the `cdata` object
+	--
+	-- @tparam[opt] number length Length of data. Not required for strings and cdata with discernable size (i.e. cdata
+	-- that does not contain pointers).
+	-- See also [ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof).
+	--
 	-- @treturn BlobWriter self
 	raw: (value, length) =>
 		length = length or (type(value) == 'string' and #value or ffi.sizeof(value))
@@ -261,23 +268,24 @@ class BlobWriter
 	cstring: (value) => @raw(value)\u8(0)
 
 	--- Writes a `cdata` object to the output buffer.
-	-- See `examples/cdata.lua` for example code on how to implement transparent `cdata` serialization.
+	-- See [examples/cdata.lua](https://github.com/megagrump/moonblob/blob/master/examples/cdata.lua) for example code
+	-- on how to implement transparent `cdata` serialization.
 	--
 	-- @tparam cdata value A `cdata` object
-	-- @tparam[opt] string typename Type name of the `cdata` object.
 	--
-	--  This is the name of the type as declared with `ffi.cdef`. Not required when the metatype has a `__typename` field
-	-- @tparam[opt] number length Length of data.
+	-- @tparam[opt] string typename The type name of the `cdata` object as declared with
+	-- [ffi.cdef](https://luajit.org/ext_ffi_api.html#ffi_cdef). Not required when the metatype has a `__typename` field
 	--
-	-- Not required when `[ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof)` can be used to query the
-	-- size of the `cdata` object, or when the metatype has `__typename` and `__serialize` fields
+	-- @tparam[opt] number length Length of data. Not required for cdata with discernable size (i.e. cdata
+	-- that does not contain pointers, or has a metatype with a `__serialize` method).
+	-- See also [ffi.sizeof](https://luajit.org/ext_ffi_api.html#ffi_sizeof).
+	--
 	-- @treturn BlobWriter self
 	cdata: (value, typename, length) =>
 		typename = value.__typename if not typename and pcall(_hasTypename, value)
 		error("Can't write cdata without a type name") unless typename
-		hasSerializer = pcall(_hasSerializer, value)
 		@string(typename)
-		if hasSerializer
+		if pcall(_hasSerializer, value)
 			value\__serialize(@)
 		else
 			length or= ffi.sizeof(value)
@@ -305,6 +313,7 @@ class BlobWriter
 	--
 	-- Maximum allowed length is `2 ^ 32 - 1` values.
 	-- Behavior is undefined for table keys that are not sequential, or not starting at index 1.
+	--
 	-- @tparam[opt] boolean writeLength If `false`, no preceding length information will be written (default `true`)
 	-- @treturn BlobWriter self
 	array: (valueType, values, writeLength = true) =>

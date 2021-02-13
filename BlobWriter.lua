@@ -1,5 +1,5 @@
 local LICENSE = [[
-Copyright (c) 2017-2020 megagrump
+Copyright (c) 2017-2021 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -152,9 +152,8 @@ do
       if not (typename) then
         error("Can't write cdata without a type name")
       end
-      local hasSerializer = pcall(_hasSerializer, value)
       self:string(typename)
-      if hasSerializer then
+      if pcall(_hasSerializer, value) then
         value:__serialize(self)
       else
         length = length or ffi.sizeof(value)

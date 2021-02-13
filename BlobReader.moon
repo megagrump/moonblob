@@ -1,7 +1,7 @@
 -- @class BlobReader
 LICENSE = [[
 
-Copyright (c) 2017-2020 megagrump
+Copyright (c) 2017-2021 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,7 @@ class BlobReader
 	--
 	-- The data must have been written by @{BlobWriter:write}.
 	-- The type of the value is automatically detected from the input metadata.
+	--
 	-- @treturn string|number|bool|table The value read from the input data
 	-- @see BlobWriter:write
 	read: =>
@@ -71,6 +72,7 @@ class BlobReader
 	--- Reads a string from the input data.
 	--
 	-- The string must have been written by @{BlobWriter:write} or @{BlobWriter:string}
+	--
 	-- @treturn string The string read from the input data
 	-- @see BlobWriter:write
 	-- @see BlobWriter:string
@@ -181,6 +183,7 @@ class BlobReader
 	--- Reads a length-encoded unsigned 32 bit integer value from the input data.
 	--
 	-- See @{BlobWriter:vu32} for more details about this data type.
+	--
 	-- @treturn number The unsigned 32-bit integer value read from the input data
 	-- @see BlobWriter:vu32
 	vu32: =>
@@ -197,6 +200,7 @@ class BlobReader
 	--- Reads a length-encoded signed 32 bit integer value from the input data.
 	--
 	-- See @{BlobWriter:vs32} for more details about this data type.
+	--
 	-- @treturn number The signed 32-bit integer value read from the input data
 	-- @see BlobWriter:vs32
 	vs32: =>
@@ -224,13 +228,10 @@ class BlobReader
 	--- Reads a `cdata` object from the input data.
 	--
 	-- This function can only read data that was written by @{BlobWriter:cdata}.
-	-- @tparam[opt] string typename The C type name of the `cdata` object.
 	--
-	-- Not required when the metatype of the ctype contains a `__typename`
 	-- @treturn cdata The `cdata` object
-	cdata: (typename) =>
-		typename or= @string!
-		ctype = ffi.typeof(typename)
+	cdata: =>
+		ctype = ffi.typeof(@string!)
 		hasDeserializer = pcall(_hasDeserializer, ctype)
 		return ctype\__deserialize(@) if hasDeserializer
 
@@ -238,7 +239,7 @@ class BlobReader
 		ffi.copy(cdata, @raw(len), len)
 		cdata
 
-	--- Skips a number of bytes in the input data.
+	--- Skips over a number of bytes in the input data.
 	--
 	-- @tparam number len The number of bytes to skip
 	-- @treturn BlobReader self
@@ -269,6 +270,7 @@ class BlobReader
 	--
 	-- @tparam[opt] number count Number of values to read. If `nil`, preceding `vu32` encoded array length information is
 	-- expected to be precede the array, as written by @{BlobWriter:array}.
+	--
 	-- @tparam[opt] table result Table to put the values in
 	-- @treturn table A sequential table, starting at index 1
 	-- @see BlobWriter:array
@@ -290,6 +292,7 @@ class BlobReader
 	-- * `x[n]`: skip `n` bytes of data
 	--
 	--     `n` defaults to 1 if no length was specified.
+	--
 	-- @return All values parsed from the input data
 	-- @usage byte, float, bool = reader:unpack('x4Bfy') -- skips 4 bytes before actual data
 	-- @see BlobWriter:pack

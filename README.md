@@ -67,7 +67,7 @@ These data types are supported by `BlobReader:read` and `BlobWriter:write`:
 * `table`
 * `cdata`
 
-Type and length information will be added as metadata by the `write` function. Metadata overhead is 1 byte per value written for type information, and between 1 and 5 bytes per string written for length information. Tables can contain `number`, `string`, `boolean`, and `table` as key and value types. An error is being thrown if other types or cyclic nested tables are encountered.
+Type and length information will be added as metadata by the `write` function. Metadata overhead is 1 byte per value written for type information, and between 1 and 5 bytes per string written for length information. Tables can contain `number`, `string`, `boolean`, 'cdata', and `table` as key and value types. An error is being thrown if other types or cyclic nested tables are encountered.
 
 ### Low level I/O
 
@@ -98,7 +98,7 @@ Since moonblob uses the ffi library and C data types, it is not compatible with 
 
 ### License
 
-Copyright 2017-2020 megagrump
+Copyright 2017-2021 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

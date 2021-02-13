@@ -1,5 +1,5 @@
 local LICENSE = [[
-Copyright (c) 2017-2020 megagrump
+Copyright (c) 2017-2021 megagrump
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -161,9 +161,8 @@ do
       self._readPtr = ptr + len
       return ffi.string(ffi.cast('uint8_t*', self._data + ptr), len)
     end,
-    cdata = function(self, typename)
-      typename = typename or self:string()
-      local ctype = ffi.typeof(typename)
+    cdata = function(self)
+      local ctype = ffi.typeof(self:string())
       local hasDeserializer = pcall(_hasDeserializer, ctype)
       if hasDeserializer then
         return ctype:__deserialize(self)
