@@ -129,9 +129,13 @@ test_CData_table = ->
 	writer\write(tbl)
 
 	reader = BlobReader(writer\tostring!)
-	result = reader\read('cdata')
+	result = reader\read!
 	equals(result.one.val, tbl.one.val)
 	equals(result.two.val, tbl.two.val)
+
+	ffi.cdef('typedef struct { int val; } teststruct5_t;')
+	no_meta = ffi.new('teststruct5_t', 4)
+	isError('without a type name', writer.write, writer, no_meta)
 
 test_Formatted = ->
 	b0 = BlobWriter!
