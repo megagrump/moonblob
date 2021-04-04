@@ -1,4 +1,4 @@
 doc linguist-documentation
 *.css linguist-documentation
 *.lua linguist-generated
-test/benchmarks/*.lua lingust-vendored
+test/benchmarks/*.lua linguist-vendored
