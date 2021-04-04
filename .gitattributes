@@ -1,2 +1,2 @@
 doc linguist-documentation
-Blob*.lua linguist-generated
+*.lua linguist-generated
